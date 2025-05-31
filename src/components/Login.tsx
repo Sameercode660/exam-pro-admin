@@ -26,6 +26,8 @@ const Login = () => {
         const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/admin-login`, data);
 
         if(response.data.status == true) {
+            localStorage.setItem('adminId', response.data.response.id);
+            localStorage.setItem('adminName', response.data.response.name);
             router.push('/home')
         } else {
             alert(response.data.message)

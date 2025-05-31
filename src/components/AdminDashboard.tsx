@@ -1,207 +1,198 @@
 'use client'
 
-import axios from "axios";
 import React, { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { PlusCircle, ArrowRight } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import axios from "axios";
 
 const AdminDashboard = () => {
-  const [exams, setExams] = useState([
-    { id: 1, name: "Math Exam" },
-    { id: 2, name: "Science Exam" },
-  ]);
+  const [exams, setExams] = useState([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [duration, setDuration] = useState(0);
+  const [status, setStatus] = useState('active')
 
-  const [students, setStudents] = useState([
-    { id: 1, name: "Alice" },
-    { id: 2, name: "Bob" },
-  ]);
 
-  const [showPopup, setShowPopup] = useState(false);
-  const [showCreateExamPopup, setShowCreateExamPopup] = useState(false);
-
-  const [newExam, setNewExam] = useState({
-    title: "",
-    description: "",
-    examCode: "",
-    duration: 0,
-    status: "",
-  });
-
-  const [selectedFile, setSelectedFile] = useState(null);
 
   const generateExamCode = () => {
-    return Math.floor(10000000 + Math.random() * 90000000).toString();
+    // return `EXAM-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+    return Math.floor(Math.random() * 999999);
   };
 
-  const handleCreateExamChange = (e) => {
-    const { name, value } = e.target;
-    setNewExam({ ...newExam, [name]: value });
-  };
+  const handleCreateExam = async () => {
+    // exam code generation 
+    const examCode = generateExamCode();
 
-  const handleCreateExam = () => {
-    if (
-      !newExam.title ||
-      !newExam.description ||
-      !newExam.duration ||
-      !newExam.status
-    ) {
-      alert("Please fill out all fields!");
-      return;
-    }
-    const newExamData = {
-      ...newExam,
-      id: exams.length + 1,
-      examCode: newExam.examCode || generateExamCode(),
+
+    const data = {
+      title,
+      description,
+      duration,
+      examCode,
+      status,
+      createdBy: localStorage.getItem("adminId")
     };
-    setExams([...exams, newExamData]);
-    setShowCreateExamPopup(false);
-    setNewExam({ title: "", description: "", examCode: "", duration: 0, status: "" });
-  };
 
-  const deleteExam = (id) => {
-    setExams(exams.filter((exam) => exam.id !== id));
-  };
-
-  const addQuestion = () => {
-    setShowPopup(true);
-  };
-
-  const closePopup = () => {
-    setShowPopup(false);
-    setShowCreateExamPopup(false);
-    setSelectedFile(null);
-  };
-
-  const handleFileChange = (event) => {
-    setSelectedFile(event.target.files[0]);
-  };
-
-  const handleUpload = async () => {
-    if (!selectedFile) {
-      alert("Please select a file!");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", selectedFile);
+   if(!title || !description || !duration || !examCode || !status || !data.createdBy) {
+    
+   }
+    console.log(data)
 
     try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_ROOT_URL}/upload-questions`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-      alert("File uploaded successfully!");
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/create-exam`, data)
+
+      console.log(response)
+
+      if (response.data.status != true) {
+        alert('Unable to create the exam');
+      }
     } catch (error) {
-      console.error(error);
-      alert("Failed to upload file.");
+      console.log(error)
+      alert('Unable to create the exam');
+    } finally {
+      examData.title = '';
+      examData.description = '';
+      examData.duration = '';
+      setIsDialogOpen(false);
     }
+
   };
 
-  useEffect(() => {
-    async function fetchExam() {
-      try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_ROOT_URL}/fetch-exam`
-        );
-        setExams(response.data.response);
-      } catch (error) {
-        console.log(error);
-        alert("Unable to fetch the exams");
-      }
+  const handleDialogOpen = () => {
+    const examCode = generateExamCode();
+    setExamData({ ...examData, examCode });
+    setIsDialogOpen(true);
+  };
+
+  async function fetchExam() {
+    const data = {
+      createdBy: localStorage.getItem('adminId')
+    };
+
+    try {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/fetch-exam`, data);
+      setExams(response.data.response)
+      console.log(response)
+    } catch (error) {
+      alert('Unable to fetch the exams')
+    } finally {
+      setLoading(false)
     }
-    fetchExam();
-  }, []);
+  }
+
+  useEffect(() => {
+    fetchExam()
+  }, [])
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-      <div className="w-full max-w-6xl p-6 bg-white rounded-2xl shadow-2xl">
-        <h2 className="text-3xl font-bold text-gray-800 text-center mb-6">
-          Admin Dashboard
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="bg-blue-500 text-white p-4 rounded-lg shadow-lg flex flex-col items-center">
-            <h3 className="text-xl font-semibold mb-2">Total Exams</h3>
-            <p className="text-4xl font-bold">{exams.length}</p>
-          </div>
-          <div className="bg-purple-500 text-white p-4 rounded-lg shadow-lg flex flex-col items-center">
-            <h3 className="text-xl font-semibold mb-2">All Students</h3>
-            <p className="text-4xl font-bold">{students.length}</p>
-          </div>
-        </div>
-
-        <div className="mt-8">
-          <h3 className="text-2xl font-semibold text-gray-700 mb-4">
-            Manage Exams
-          </h3>
-          <button
-            onClick={() => setShowCreateExamPopup(true)}
-            className="bg-green-500 text-white py-2 px-4 rounded-lg mb-4 shadow hover:bg-green-600"
-          >
-            Create Exam
-          </button>
-          <div className="space-y-4">
-            {exams.map((exam: any) => (
-              <div
-                key={exam.id}
-                className="flex justify-between items-center p-4 bg-gray-200 rounded-lg shadow"
-              >
-                <span>
-                  {exam.title} (ID: {exam.id}, code: {exam.examCode})
-                </span>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => addQuestion(exam.id)}
-                    className="bg-blue-500 text-white py-1 px-3 rounded-lg hover:bg-blue-600"
-                  >
-                    Add Question
-                  </button>
-                  <button
-                    onClick={() => deleteExam(exam.id)}
-                    className="bg-red-500 text-white py-1 px-3 rounded-lg hover:bg-red-600"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+    <div className="p-4 bg-gray-50 min-h-screen">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+        <Button
+          className="bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-2"
+          onClick={handleDialogOpen}
+        >
+          <PlusCircle className="w-5 h-5" />
+          Create Exam
+        </Button>
       </div>
 
-      {showPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h3 className="text-lg font-semibold mb-4">Add Question</h3>
-            <button
-              onClick={() => window.location.href = "/add-question"}
-              className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 mb-2"
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Card className="shadow-xl">
+          <CardHeader className="bg-blue-500 text-white p-4 rounded-t-2xl">
+            <CardTitle className="text-lg">Exam Title</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4">
+            <p className="text-gray-700 mb-4">
+              This is a brief description of the exam. It provides an overview of the exam content and purpose.
+            </p>
+            <Button
+              className="bg-blue-500 hover:bg-blue-600 text-white w-full flex items-center justify-center gap-2"
             >
-              Add Manually
-            </button>
-            <input
-              type="file"
-              accept=".xlsx, .xls"
-              onChange={handleFileChange}
-              className="w-full mb-2 p-2 border rounded"
-            />
-            <button
-              onClick={handleUpload}
-              className="w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 mb-2"
-            >
-              Upload Excel
-            </button>
-            <button
-              onClick={closePopup}
-              className="w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600"
-            >
-              Cancel
-            </button>
+              <span>Go to Exam</span>
+              <ArrowRight className="w-5 h-5" />
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Exam</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                name="title"
+                value={examData.title}
+                onChange={handleInputChange}
+                placeholder="Enter exam title"
+              />
+            </div>
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Input
+                id="description"
+                name="description"
+                value={examData.description}
+                onChange={handleInputChange}
+                placeholder="Enter exam description"
+              />
+            </div>
+            <div>
+              <Label htmlFor="duration">Duration (minutes)</Label>
+              <Input
+                id="duration"
+                name="duration"
+                type="number"
+                value={examData.duration}
+                onChange={handleInputChange}
+                placeholder="Enter duration"
+              />
+            </div>
+            <div>
+              <Label htmlFor="status">Status</Label>
+              <select
+                id="status"
+                name="status"
+                value={examData.status}
+                onChange={handleInputChange}
+                className="w-full border rounded px-2 py-1"
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div>
+              <Label htmlFor="examCode">Exam Code</Label>
+              <Input
+                id="examCode"
+                name="examCode"
+                value={examData.examCode}
+                readOnly
+                className="bg-gray-100"
+              />
+            </div>
           </div>
-        </div>
-      )}
+          <DialogFooter>
+            <Button onClick={() => setIsDialogOpen(false)} className="bg-gray-200 text-gray-800">
+              Cancel
+            </Button>
+            <Button onClick={handleCreateExam} className="bg-blue-500 hover:bg-blue-600 text-white">
+              Create Exam
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
