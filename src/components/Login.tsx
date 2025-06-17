@@ -23,7 +23,7 @@ const Login = () => {
             password
         }
         setIsLoading(true);
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/admin-login`, data);
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/authentication/admin-login`, data);
 
         if(response.data.status == true) {
             localStorage.setItem('adminId', response.data.response.id);
