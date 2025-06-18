@@ -5,7 +5,7 @@ interface LoaderProps {
   color?: string; 
 }
 
-const Loader: React.FC<LoaderProps> = ({ size = 24, color = "#ffffff" }) => {
+const Loader: React.FC<LoaderProps> = ({ size = 24, color = "black" }) => {
   return (
     <div
       className="loader"

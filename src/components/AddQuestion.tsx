@@ -1,7 +1,9 @@
 'use client';
 
-import React, { use, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import Loader from './Loader';
+import axios from 'axios';
+import { useRouter } from 'next/navigation';
 
 function AddQuestion() {
 
@@ -15,8 +17,13 @@ function AddQuestion() {
   const [option3, setOption3] = useState('');
   const [option4, setOption4] = useState('');
   const [correctOption, setCorrectOption] = useState('')
-  const [difficulty, setDifficulty] = useState('');
-  const adminId = localStorage.getItem('adminId');
+  const [difficultyLevel, setDifficultyLevel] = useState('EASY');
+  const [adminId, setAdminId] = useState<number | null>(0);
+  const router = useRouter();
+
+  useEffect(() => {
+    setAdminId(Number(localStorage.getItem('adminId')));
+  }, [])
 
   const handleFileChange = (e: any) => {
     setFile(e.target.files[0]);
@@ -33,29 +40,73 @@ function AddQuestion() {
 
     try {
       setLoading(true)
-      const response = await fetch(`${process.env.NEXT_PUBLIC_ROOT_URL}/questions/file-question-upload`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_ROOT_URL}/questions/file-question-upload?adminId=${adminId}`, {
         method: 'POST',
         body: formData,
       });
-
+      setLoading(false)
       if (!response.ok) {
-        throw new Error('Failed to upload file');
+        alert('Failed to upload file');
+        return;
       }
 
       const result = await response.json();
       alert('File uploaded successfully');
+      router.push('/home/manage-questions')
       console.log('Server Response:', result);
     } catch (error) {
       alert('Error uploading file');
       console.error('Error:', error);
-    }finally{
+    } finally {
       setLoading(false)
     }
   };
 
 
-  const handleFormSubmit = () => {
+  const handleFormSubmit = async () => {
+    const data = {
+      categoryName,
+      topicName,
+      text,
+      option1,
+      option2,
+      option3,
+      option4,
+      correctOption,
+      difficultyLevel,
+      adminId
+    }
+    console.log(data);
+    if (!categoryName || !topicName || !text || !option1 || !option2 || !option3 || !option4 || !correctOption || !difficulty || !adminId) {
+      alert('Anyone field is empty!');
+      return;
+    }
 
+    try {
+
+      setLoading(true);
+      
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/questions/add-single-question`, data);
+      
+      setLoading(false);
+
+      if(response.data.status) {
+        alert('Question uploaded successfully.');
+      } else {
+        alert('Unable to upload the question.');
+      }
+
+    } catch (error) {
+
+      if (error instanceof Error) {
+        console.error('API Error:', error.message);
+        alert('Something went wrong while uplading question. Please try again later.');
+
+      } else {
+        console.error('Unexpected Error:', error);
+        alert('An unexpected error occurred. Please try again later.');
+      }
+    }
   };
 
   return (
@@ -80,18 +131,18 @@ function AddQuestion() {
         <button
           type="button"
           onClick={handleFileUpload}
-          className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >{loading ? <Loader></Loader> : 'Upload Questions'}
+          className={`mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 ${loading ? 'disabled': ''}`}
+        >{loading ? 'Uploading...' : 'Upload Questions'}
         </button>
       </div>
 
       {/* Single Question Form Section */}
       <div className="mt-6">
         <h3 className="text-lg font-semibold mb-4">Add a Single Question</h3>
-        <form onSubmit={handleFormSubmit}>
+        <div>
 
-           {/* category name input  */}
-              <div className="mb-4">
+          {/* category name input  */}
+          <div className="mb-4">
             <label htmlFor="categoryName" className="block text-sm font-medium mb-2">Category Name</label>
             <input
               type="text"
@@ -105,7 +156,7 @@ function AddQuestion() {
               required
             />
           </div>
-            
+
           {/* topic name field  */}
 
           <div className="mb-4">
@@ -134,74 +185,74 @@ function AddQuestion() {
                 setText(e.target.value);
               }}
               className="w-full px-3 py-2 border rounded"
-              rows="3"
+              rows={3}
               required
             ></textarea>
           </div>
-             
-             {/* topic 1 input field  */}
-         <div className="mb-4">
-  <label htmlFor="option1" className="block text-sm font-medium mb-2">
-    Option 1
-  </label>
-  <input
-    type="text"
-    id="option1"
-    name="option1"
-    value={option1}
-    onChange={(e) => setOption1(e.target.value)}
-    className="w-full px-3 py-2 border rounded"
-    required
-  />
-</div>
 
-<div className="mb-4">
-  <label htmlFor="option2" className="block text-sm font-medium mb-2">
-    Option 2
-  </label>
-  <input
-    type="text"
-    id="option2"
-    name="option2"
-    value={option2}
-    onChange={(e) => setOption2(e.target.value)}
-    className="w-full px-3 py-2 border rounded"
-    required
-  />
-</div>
+          {/* topic 1 input field  */}
+          <div className="mb-4">
+            <label htmlFor="option1" className="block text-sm font-medium mb-2">
+              Option 1
+            </label>
+            <input
+              type="text"
+              id="option1"
+              name="option1"
+              value={option1}
+              onChange={(e) => setOption1(e.target.value)}
+              className="w-full px-3 py-2 border rounded"
+              required
+            />
+          </div>
 
-<div className="mb-4">
-  <label htmlFor="option3" className="block text-sm font-medium mb-2">
-    Option 3
-  </label>
-  <input
-    type="text"
-    id="option3"
-    name="option3"
-    value={option3}
-    onChange={(e) => setOption3(e.target.value)}
-    className="w-full px-3 py-2 border rounded"
-    required
-  />
-</div>
+          <div className="mb-4">
+            <label htmlFor="option2" className="block text-sm font-medium mb-2">
+              Option 2
+            </label>
+            <input
+              type="text"
+              id="option2"
+              name="option2"
+              value={option2}
+              onChange={(e) => setOption2(e.target.value)}
+              className="w-full px-3 py-2 border rounded"
+              required
+            />
+          </div>
 
-<div className="mb-4">
-  <label htmlFor="option4" className="block text-sm font-medium mb-2">
-    Option 4
-  </label>
-  <input
-    type="text"
-    id="option4"
-    name="option4"
-    value={option4}
-    onChange={(e) => setOption4(e.target.value)}
-    className="w-full px-3 py-2 border rounded"
-    required
-  />
-</div> 
-{/* ends here options input */}
-      {/* correct option input starts from here  */}
-     <div className="mb-4">
+          <div className="mb-4">
+            <label htmlFor="option3" className="block text-sm font-medium mb-2">
+              Option 3
+            </label>
+            <input
+              type="text"
+              id="option3"
+              name="option3"
+              value={option3}
+              onChange={(e) => setOption3(e.target.value)}
+              className="w-full px-3 py-2 border rounded"
+              required
+            />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="option4" className="block text-sm font-medium mb-2">
+              Option 4
+            </label>
+            <input
+              type="text"
+              id="option4"
+              name="option4"
+              value={option4}
+              onChange={(e) => setOption4(e.target.value)}
+              className="w-full px-3 py-2 border rounded"
+              required
+            />
+          </div>
+          {/* ends here options input */}
+          {/* correct option input starts from here  */}
+          <div className="mb-4">
             <label htmlFor="correctOption" className="block text-sm font-medium mb-2">Correct Option (Index)</label>
             <input
               type="number"
@@ -221,9 +272,9 @@ function AddQuestion() {
             <select
               id="difficulty"
               name="difficulty"
-              value={difficulty}
+              value={difficultyLevel}
               onChange={(e) => {
-                setDifficulty(e.target.value)
+                setDifficultyLevel(e.target.value)
               }}
               className="w-full px-3 py-2 border rounded"
               required
@@ -235,12 +286,13 @@ function AddQuestion() {
           </div>
 
           <button
+            onClick={handleFormSubmit}
             type="submit"
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+            className={`bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 ${loading ? 'disabled': ''}`}
           >
-            Add Question
+            {loading ? "Uploading..." : "Add Question"}
           </button>
-        </form>
+        </div>
       </div>
     </div>
   );
