@@ -1,7 +1,6 @@
 'use client';
 
-import React, { use, useEffect, useState } from 'react';
-import Loader from './Loader';
+import React, {useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
@@ -77,7 +76,7 @@ function AddQuestion() {
       adminId
     }
     console.log(data);
-    if (!categoryName || !topicName || !text || !option1 || !option2 || !option3 || !option4 || !correctOption || !difficulty || !adminId) {
+    if (!categoryName || !topicName || !text || !option1 || !option2 || !option3 || !option4 || !correctOption || !difficultyLevel || !adminId) {
       alert('Anyone field is empty!');
       return;
     }

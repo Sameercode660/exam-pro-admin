@@ -45,7 +45,7 @@ function AdminDashboard({
                 {/* create exam  */}
                 <li
                   className={`py-2 px-4 hover:bg-gray-700 cursor-pointer}`}
-                  onClick={() => navigation.push('/home/create-exams')}
+                  onClick={() => navigation.push('/home/exams/create-exams')}
                 >
                   Create Exam
                 </li>
@@ -53,7 +53,7 @@ function AdminDashboard({
                 {/* manage exam  */}
                 <li
                   className={`py-2 px-4 hover:bg-gray-700 cursor-pointer}`}
-                  onClick={() => navigation.push('/home/manage-exams')}
+                  onClick={() => navigation.push('/home/exams/manage-exams')}
                 >
                   Manage Exam
                 </li>
@@ -74,7 +74,7 @@ function AdminDashboard({
                 {/* create exam  */}
                 <li
                   className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
-                  onClick={() => navigation.push('/home/create-questions')}
+                  onClick={() => navigation.push('/home/questions/create-questions')}
                 >
                   Create Questions
                 </li>
@@ -82,7 +82,7 @@ function AdminDashboard({
                 {/* manage exam  */}
                 <li
                   className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
-                  onClick={() => navigation.push('/home/manage-questions')}
+                  onClick={() => navigation.push('/home/questions/manage-questions')}
                 >
                   Manage Questions
                 </li>

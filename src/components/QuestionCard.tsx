@@ -47,6 +47,7 @@ interface QuestionCardProps {
 
 const QuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestions, page }) => {
   const [loading, setLoading] = useState(false);
+  const [openDeletePopup, setOpenDeletePopup] = useState(false);
 
   // Function to delete the question
   const handleDelete = async (id: number, adminId: number) => {
@@ -60,6 +61,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestions, 
         { data }
       );
       setLoading(false);
+      setOpenDeletePopup(false)
 
       if (response.data.status) {
         console.log("Question deleted successfully:", response.data.message);
@@ -75,6 +77,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestions, 
       }
     } finally {
       setLoading(false);
+      setOpenDeletePopup(false)
     }
   };
 
@@ -88,70 +91,109 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestions, 
       {questions.map((question) => (
         <div
           key={question.id}
-          className="bg-white shadow-md rounded-lg p-4 border border-gray-200"
+          className="bg-white shadow-md rounded-lg p-4 border border-gray-200 flex justify-between"
         >
-          <h2 className="text-xl font-bold text-gray-800 mb-2">{question.text}</h2>
-          <p className="text-gray-600">
-            <span className="font-semibold">Created By:</span> {question.createdByName}
-          </p>
-          <p className="text-gray-600">
-            <span className="font-semibold">Category:</span> {question.category.name}
-          </p>
-          <p className="text-gray-600">
-            <span className="font-semibold">Topic:</span> {question.topic.name}
-          </p>
-          <p className="text-gray-600">
-            <span className="font-semibold">Difficulty:</span>{" "}
-            <span
-              className={`px-2 py-1 rounded ${
-                question.difficulty === "EASY"
-                  ? "bg-green-100 text-green-800"
-                  : question.difficulty === "MEDIUM"
-                  ? "bg-yellow-100 text-yellow-800"
-                  : "bg-red-100 text-red-800"
-              }`}
-            >
-              {question.difficulty}
-            </span>
-          </p>
-          <p className="text-gray-600">
-            <span className="font-semibold">Created At:</span>{" "}
-            {new Date(question.createdAt).toLocaleDateString()}
-          </p>
+
+          {/* actual question */}
           <div className="mt-4">
+            <h2 className="text-xl font-bold text-gray-800 mb-2">{question.text}</h2>
             <h3 className="font-semibold text-gray-800">Options:</h3>
             <ul className="list-disc list-inside text-gray-600">
               {question.options.map((option) => (
                 <li
                   key={option.id}
-                  className={`${
-                    option.isCorrect ? "text-green-600 font-semibold" : ""
-                  }`}
+                  className={`${option.isCorrect ? "text-green-600 font-semibold" : ""
+                    }`}
                 >
                   {option.text}
                 </li>
               ))}
             </ul>
-          </div>
-          <div className="mt-4 flex space-x-4">
+                 <div className="mt-4 flex space-x-4">
             <button
-              onClick={() => handleEdit(question.id)}
+
               className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
             >
               Edit
             </button>
             <button
-              onClick={() =>
-                handleDelete(question.id, Number(localStorage.getItem("adminId")))
-              }
               className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-              disabled={loading}
+              onClick={() => {
+                setOpenDeletePopup(true)
+              }}
             >
-              {loading ? "Deleting..." : "Delete"}
+              Delete
             </button>
           </div>
+          </div>
+
+          {/* question info  */}
+          <div className="flex">
+            {/* <p className="text-gray-600">
+              <span className="font-semibold">Created By:</span> {question.createdByName}
+            </p> */}
+            <li className="text-gray-600">
+              <span className="font-semibold text-gray-200"></span> {question.category.name}
+            </li>
+            <li className="text-gray-600">
+              <span className="font-semibold">.</span> {question.topic.name}
+            </li>
+            <li className="text-gray-600">
+              <span className="font-semibold">.</span>{" "}
+              <span
+                className={`px-2 py-1 rounded ${question.difficulty === "EASY"
+                  ? "bg-green-100 text-green-800"
+                  : question.difficulty === "MEDIUM"
+                    ? "bg-yellow-100 text-yellow-800"
+                    : "bg-red-100 text-red-800"
+                  }`}
+              >
+                {question.difficulty}
+              </span>
+            </li>
+            <li className="text-gray-600">
+              <span className="font-semibold">.</span>{" "}
+              {new Date(question.createdAt).toLocaleDateString()}
+            </li>
+          </div>
+
+          {/* edit  */}
+     
+
+          {/* delete option Popup  */}
+          {
+            openDeletePopup ? (<div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,0.3)]">
+              <div className="bg-white p-6 rounded-lg shadow-lg">
+                <h2 className="text-xl font-semibold mb-4">Are you sure?</h2>
+                <p className="text-gray-600 mb-6">Do you really want to delete this item.</p>
+                <div className="flex justify-end space-x-4">
+                  <button
+                    className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300"
+                    onClick={() => {
+                      setOpenDeletePopup(false)
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600"
+                    onClick={() =>
+                      handleDelete(question.id, Number(localStorage.getItem("adminId")))
+                    }
+                    disabled={loading}
+                  >
+                    {loading ? "Deleting..." : "Delete"}
+                  </button>
+                </div>
+              </div>
+            </div>) : (<></>)
+          }
+
         </div>
       ))}
+
+
+
     </div>
   );
 };
