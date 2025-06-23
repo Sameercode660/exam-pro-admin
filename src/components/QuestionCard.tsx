@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 interface QuestionOption {
   id: number;
@@ -48,6 +49,7 @@ interface QuestionCardProps {
 const QuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestions, page }) => {
   const [loading, setLoading] = useState(false);
   const [openDeletePopup, setOpenDeletePopup] = useState(false);
+  const router = useRouter();
 
   // Function to delete the question
   const handleDelete = async (id: number, adminId: number) => {
@@ -111,8 +113,10 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestions, 
             </ul>
                  <div className="mt-4 flex space-x-4">
             <button
-
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              onClick={() => {
+                router.push(`/home/questions/update-question/${question.id}`)
+              }}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 cursor-pointer"
             >
               Edit
             </button>
@@ -128,18 +132,17 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestions, 
           </div>
 
           {/* question info  */}
-          <div className="flex">
+          <div className="flex space-x-6">
             {/* <p className="text-gray-600">
               <span className="font-semibold">Created By:</span> {question.createdByName}
             </p> */}
-            <li className="text-gray-600">
-              <span className="font-semibold text-gray-200"></span> {question.category.name}
+            <li className="text-gray-400 list-none font-semibold bg-gray-100 h-7 p-1 flex justify-center items-center rounded-md">
+               &#8226;{" "}{question.category.name}
             </li>
-            <li className="text-gray-600">
-              <span className="font-semibold">.</span> {question.topic.name}
+            <li className="text-gray-400 list-none font-semibold bg-gray-100 h-7 p-1 flex justify-center items-center rounded-md">
+               &#8226;{" "}{question.topic.name}
             </li>
-            <li className="text-gray-600">
-              <span className="font-semibold">.</span>{" "}
+            <li className="text-gray-400 list-none font-semibold h-7 p-1 flex justify-center items-center rounded-md">
               <span
                 className={`px-2 py-1 rounded ${question.difficulty === "EASY"
                   ? "bg-green-100 text-green-800"
@@ -148,12 +151,11 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestions, 
                     : "bg-red-100 text-red-800"
                   }`}
               >
-                {question.difficulty}
+                &#8226;{" "}{question.difficulty}
               </span>
             </li>
-            <li className="text-gray-600">
-              <span className="font-semibold">.</span>{" "}
-              {new Date(question.createdAt).toLocaleDateString()}
+            <li className="text-gray-400 list-none font-semibold bg-gray-100 h-7 p-1 flex justify-center items-center rounded-md">
+              &#8226;{" "}{new Date(question.createdAt).toLocaleDateString()}
             </li>
           </div>
 

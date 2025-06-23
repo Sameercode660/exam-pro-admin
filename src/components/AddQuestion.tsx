@@ -51,7 +51,7 @@ function AddQuestion() {
 
       const result = await response.json();
       alert('File uploaded successfully');
-      router.push('/home/manage-questions')
+      router.push('/home/questions/manage-questions')
       console.log('Server Response:', result);
     } catch (error) {
       alert('Error uploading file');
