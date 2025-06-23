@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 function CreateExam() {
   const [formData, setFormData] = useState({
@@ -9,12 +9,24 @@ function CreateExam() {
     examCode: '',
     duration: '',
     status: '',
-    createdByAdmin: 1
+    createdByAdminId: Number(localStorage.getItem('adminId')) || 1,
   });
-  const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
 
-  const handleInputChange = (e : any) => {
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Generate a random exam code
+  const generateExamCode = () => {
+    const randomCode = `EX-${Math.floor(Math.random() * 999999)}`;
+    setFormData((prev) => ({ ...prev, examCode: randomCode }));
+  };
+
+  // Generate the exam code on component mount
+  useEffect(() => {
+    generateExamCode();
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
@@ -22,7 +34,7 @@ function CreateExam() {
     });
   };
 
-  const handleSubmit = async (e : any) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setSuccessMessage(null);
@@ -41,17 +53,20 @@ function CreateExam() {
       }
 
       const data = await response.json();
-    //   setSuccessMessage('Exam created successfully!');
+      setSuccessMessage('Exam created successfully!');
       console.log('Server Response:', data);
+
       setFormData({
         title: '',
         description: '',
         examCode: '',
         duration: '',
         status: '',
-        createdByAdmin: 1
+        createdByAdminId: Number(localStorage.getItem('adminId')) || 1,
       });
-    } catch (err : any) {
+
+      generateExamCode(); // Generate a new code for a fresh form
+    } catch (err: any) {
       setError(err.message);
       console.error('Error:', err);
     }
@@ -66,7 +81,9 @@ function CreateExam() {
 
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <label htmlFor="title" className="block text-sm font-medium mb-2">Title</label>
+          <label htmlFor="title" className="block text-sm font-medium mb-2">
+            Title
+          </label>
           <input
             type="text"
             id="title"
@@ -79,33 +96,48 @@ function CreateExam() {
         </div>
 
         <div className="mb-4">
-          <label htmlFor="description" className="block text-sm font-medium mb-2">Description</label>
+          <label htmlFor="description" className="block text-sm font-medium mb-2">
+            Description
+          </label>
           <textarea
             id="description"
             name="description"
             value={formData.description}
             onChange={handleInputChange}
             className="w-full px-3 py-2 border rounded"
-            rows="4"
+            rows={4}
             required
           ></textarea>
         </div>
 
-        <div className="mb-4">
-          <label htmlFor="examCode" className="block text-sm font-medium mb-2">Exam Code</label>
-          <input
-            type="text"
-            id="examCode"
-            name="examCode"
-            value={formData.examCode}
-            onChange={handleInputChange}
-            className="w-full px-3 py-2 border rounded"
-            required
-          />
+        <div className="mb-4 flex items-center gap-4">
+          <div className="w-full">
+            <label htmlFor="examCode" className="block text-sm font-medium mb-2">
+              Exam Code
+            </label>
+            <input
+              type="text"
+              id="examCode"
+              name="examCode"
+              value={formData.examCode}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border rounded"
+              required
+            />
+          </div>
+          <button
+            type="button"
+            onClick={generateExamCode}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Generate Code
+          </button>
         </div>
 
         <div className="mb-4">
-          <label htmlFor="duration" className="block text-sm font-medium mb-2">Duration (in minutes)</label>
+          <label htmlFor="duration" className="block text-sm font-medium mb-2">
+            Duration (in minutes)
+          </label>
           <input
             type="number"
             id="duration"
@@ -118,7 +150,9 @@ function CreateExam() {
         </div>
 
         <div className="mb-4">
-          <label htmlFor="status" className="block text-sm font-medium mb-2">Status</label>
+          <label htmlFor="status" className="block text-sm font-medium mb-2">
+            Status
+          </label>
           <select
             id="status"
             name="status"

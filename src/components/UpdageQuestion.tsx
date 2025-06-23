@@ -58,7 +58,7 @@ const UpdateQuestion: React.FC = () => {
         categoryName: question.category?.name || '',
         topicName: question.topic?.name || '',
         difficulty: question.difficulty,
-        correctOption: question.correctOption,
+        correctOption: Number(question.correctOption),
         options: question.options.map((opt: Option) => ({ text: opt.text })),
       };
 
@@ -102,7 +102,7 @@ const UpdateQuestion: React.FC = () => {
 
     setLoading(true);
     setError('');
-
+    console.log(formData)
     try {
       const adminId = Number(localStorage.getItem('adminId')) || 1;
       const response = await axios.put(`${process.env.NEXT_PUBLIC_ROOT_URL}/questions/update-question`, {
@@ -167,7 +167,10 @@ const UpdateQuestion: React.FC = () => {
               <select
                 name="difficulty"
                 value={formData.difficulty}
-                onChange={handleInputChange}
+                onChange={(e) => {
+                  handleInputChange(e)
+                  setIsUpdateEnabled(true)
+                }}
                 className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select Difficulty</option>
@@ -182,7 +185,10 @@ const UpdateQuestion: React.FC = () => {
               <select
                 name="correctOption"
                 value={formData.correctOption || ''}
-                onChange={handleInputChange}
+                onChange={(e) => {
+                  handleInputChange(e)
+                  setIsUpdateEnabled(true)
+                }}
                 className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select Correct Option</option>
@@ -202,7 +208,9 @@ const UpdateQuestion: React.FC = () => {
                 key={index}
                 name="options"
                 value={option.text}
-                onChange={(e) => handleInputChange(e, index)}
+                onChange={(e) => {
+                  handleInputChange(e, index)
+                }}
                 className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 mt-2"
                 placeholder={`Option ${index + 1}`}
               />
