@@ -1,74 +1,72 @@
 'use client';
 
+import axios from 'axios';
+import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
 function CreateExam() {
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    examCode: '',
-    duration: '',
-    status: '',
-    createdByAdminId: Number(localStorage.getItem('adminId')) || 1,
-  });
-
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [examCode, setExamCode] = useState('');
+  const [duration, setDuration] = useState('');
+  const [status, setStatus] = useState('');
+  const [adminId, setAdminId] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const router = useRouter();
 
   // Generate a random exam code
   const generateExamCode = () => {
     const randomCode = `EX-${Math.floor(Math.random() * 999999)}`;
-    setFormData((prev) => ({ ...prev, examCode: randomCode }));
+    setExamCode(randomCode);
   };
 
-  // Generate the exam code on component mount
   useEffect(() => {
     generateExamCode();
+    setAdminId(Number(localStorage.getItem('adminId')));
   }, []);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-    setSuccessMessage(null);
 
     try {
-      const response = await fetch('http://localhost:3000/api/exams/create-exam', {
-        method: 'POST',
+      setLoading(true);
+
+      const response = await axios.post('http://localhost:3000/api/exams/create-exam', {
+        title,
+        description,
+        examCode,
+        duration: Number(duration),
+        status,
+        createdByAdminId: adminId,
+      }, {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to create the exam. Please check your inputs and try again.');
+      setLoading(false);
+
+      if (response.data.status === false) {
+        alert('Unable to create the exam');
+        return;
       }
 
-      const data = await response.json();
-      setSuccessMessage('Exam created successfully!');
-      console.log('Server Response:', data);
+      alert('Exam Created Successfully');
+      router.push('/home/exams/manage-exams');
 
-      setFormData({
-        title: '',
-        description: '',
-        examCode: '',
-        duration: '',
-        status: '',
-        createdByAdminId: Number(localStorage.getItem('adminId')) || 1,
-      });
-
+      setTitle('');
+      setDescription('');
       generateExamCode(); // Generate a new code for a fresh form
+      setDuration('');
+      setStatus('');
     } catch (err: any) {
-      setError(err.message);
+      setError(err.response?.data?.message || err.message);
       console.error('Error:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -77,7 +75,6 @@ function CreateExam() {
       <h2 className="text-xl font-semibold mb-4">Create Exam</h2>
 
       {error && <div className="mb-4 text-red-600">{error}</div>}
-      {successMessage && <div className="mb-4 text-green-600">{successMessage}</div>}
 
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
@@ -87,9 +84,8 @@ function CreateExam() {
           <input
             type="text"
             id="title"
-            name="title"
-            value={formData.title}
-            onChange={handleInputChange}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
             className="w-full px-3 py-2 border rounded"
             required
           />
@@ -101,9 +97,8 @@ function CreateExam() {
           </label>
           <textarea
             id="description"
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
             className="w-full px-3 py-2 border rounded"
             rows={4}
             required
@@ -116,22 +111,21 @@ function CreateExam() {
               Exam Code
             </label>
             <input
+              disabled
               type="text"
               id="examCode"
-              name="examCode"
-              value={formData.examCode}
-              onChange={handleInputChange}
+              value={examCode}
               className="w-full px-3 py-2 border rounded"
               required
             />
           </div>
-          <button
+          {/* <button
             type="button"
             onClick={generateExamCode}
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
           >
             Generate Code
-          </button>
+          </button> */}
         </div>
 
         <div className="mb-4">
@@ -141,9 +135,8 @@ function CreateExam() {
           <input
             type="number"
             id="duration"
-            name="duration"
-            value={formData.duration}
-            onChange={handleInputChange}
+            value={duration}
+            onChange={(e) => setDuration(e.target.value)}
             className="w-full px-3 py-2 border rounded"
             required
           />
@@ -155,9 +148,8 @@ function CreateExam() {
           </label>
           <select
             id="status"
-            name="status"
-            value={formData.status}
-            onChange={handleInputChange}
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
             className="w-full px-3 py-2 border rounded"
             required
           >
@@ -171,7 +163,7 @@ function CreateExam() {
           type="submit"
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
-          Create Exam
+          {loading ? 'Loading...' : 'Create Exam'}
         </button>
       </form>
     </div>
