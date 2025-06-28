@@ -105,7 +105,7 @@ function CreateExam() {
           ></textarea>
         </div>
 
-        <div className="mb-4 flex items-center gap-4">
+        {/* <div className="mb-4 flex items-center gap-4">
           <div className="w-full">
             <label htmlFor="examCode" className="block text-sm font-medium mb-2">
               Exam Code
@@ -119,14 +119,14 @@ function CreateExam() {
               required
             />
           </div>
-          {/* <button
+          <button
             type="button"
             onClick={generateExamCode}
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
           >
             Generate Code
-          </button> */}
-        </div>
+          </button>
+        </div> */}
 
         <div className="mb-4">
           <label htmlFor="duration" className="block text-sm font-medium mb-2">

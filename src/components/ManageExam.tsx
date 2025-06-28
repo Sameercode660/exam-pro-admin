@@ -101,15 +101,7 @@ function ManageExam() {
     }
   };
 
-  const handleEdit = (id: number) => {
-    console.log(`Edit exam with id: ${id}`);
-    // Add functionality for editing the exam here
-  };
 
-  const handleAddQuestion = (id: number) => {
-    console.log(`Add question to exam with id: ${id}`);
-    // Add functionality for adding questions here
-  };
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -152,12 +144,14 @@ function ManageExam() {
                 key={exam.id}
                 className="border p-4 rounded-lg shadow-md bg-white flex justify-between items-center"
               >
-                <div>
-                  <h2 className="text-lg font-semibold">{exam.title}</h2>
-                  <p>Description: {exam.description}</p>
-                  <p>Exam Code: {exam.examCode}</p>
-                  <p>Duration: {exam.duration} minutes</p>
-                  <p>Status: {exam.status}</p>
+                <div className='flex flex-col space-y-1.5'>
+                  <h2 className="text-lg font-semibold">{exam.title.toUpperCase()}</h2>
+                  <p className='font-semibold text-gray-500'>{exam.description}</p>
+                  <div className='flex space-x-5'>
+                  <p className='font-semibold text-gray-500 text-sm bg-gray-200 flex justify-center items-center rounded pl-2 pr-2'> {exam.examCode}</p>
+                  <p className='font-semibold text-gray-500 text-sm bg-gray-200 flex justify-center items-center rounded pl-2 pr-2'>{exam.duration} minutes</p>
+                  <p className='font-semibold text-gray-500 text-sm bg-gray-200 flex justify-center items-center rounded pl-2 pr-2'>{exam.status}</p>
+                  </div>
                 </div>
                 <div className="space-x-2">
                   <button

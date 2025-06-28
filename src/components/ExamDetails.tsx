@@ -2,21 +2,22 @@
 
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import AddQuestionCard from './AddQuestionCard';
 import { useParams } from 'next/navigation';
 import ExamDetailsCard from './ExamDetailsCard';
+
 const ExamDetails = () => {
   const [categories, setCategories] = useState([]);
   const [topics, setTopics] = useState([]);
   const [questions, setQuestions] = useState([]);
+  const [filteredQuestions, setFilteredQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [page, setPage] = useState(1); // Current page
+  const [page, setPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<number | null>(null);
   const [difficulty, setDifficulty] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState(''); // Search term state
-  const {examId} = useParams();
+  const [searchTerm, setSearchTerm] = useState('');
+  const { examId } = useParams();
 
   const limit = 10; // Number of questions per page
 
@@ -55,6 +56,7 @@ const ExamDetails = () => {
         examId: Number(examId),
       });
       setQuestions(response.data.questions || []);
+      setFilteredQuestions(response.data.questions || []);
     } catch (err) {
       console.error('Error fetching exam questions:', err);
       setError('Failed to fetch questions. Please try again later.');
@@ -63,31 +65,37 @@ const ExamDetails = () => {
     }
   };
 
+  // Apply filters and search to the questions
+  const applyFilters = () => {
+    let filtered = [...questions];
 
-  // Fetch Questions by Search
-  const searchQuestions = async () => {
-    if (!searchTerm) return; // Skip if search term is empty
-    setLoading(true);
-    setError('');
-    const adminId = Number(localStorage.getItem('adminId')) || 1;
-
-    try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_ROOT_URL}/filtering/search`, {
-        params: {
-          adminId,
-          questionTitle: searchTerm,
-        },
-      });
-      setQuestions(response.data.response || []);
-    } catch (err) {
-      setError('Failed to search questions. Please try again later.');
-      console.error(err);
-    } finally {
-      setLoading(false);
+    if (selectedCategory) {
+      filtered = filtered.filter((q: any) => q.categoryId === selectedCategory);
     }
+
+    if (selectedTopic) {
+      filtered = filtered.filter((q: any) => q.topicId === selectedTopic);
+    }
+
+    if (difficulty) {
+      filtered = filtered.filter((q: any) => q.difficulty === difficulty);
+    }
+
+    if (searchTerm) {
+      filtered = filtered.filter((q: any) =>
+        q.text.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    setFilteredQuestions(filtered);
   };
 
-  // Fetch all questions and categories on first render
+  // Handle search and filters on user input
+  useEffect(() => {
+    applyFilters();
+  }, [selectedCategory, selectedTopic, difficulty, searchTerm, questions]);
+
+  // Fetch data on component mount
   useEffect(() => {
     fetchExamQuestions();
     fetchCategories();
@@ -102,10 +110,11 @@ const ExamDetails = () => {
     }
   }, [selectedCategory]);
 
-  // Fetch questions when filters or page change
-  useEffect(() => {
-    fetchExamQuestions();
-  }, [selectedCategory, selectedTopic, difficulty, page]);
+  // Paginated questions
+  const paginatedQuestions = filteredQuestions.slice(
+    (page - 1) * limit,
+    page * limit
+  );
 
   return (
     <div className="p-6">
@@ -123,21 +132,6 @@ const ExamDetails = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="p-2 border rounded w-full"
         />
-        <button
-          onClick={searchQuestions}
-          className="px-4 py-2 mt-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 m-1"
-        >
-          Search
-        </button>
-        <button
-          onClick={() => {
-            setSearchTerm('')
-            fetchExamQuestions()
-          }}
-          className="px-4 py-2 mt-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 m-1"
-        >
-          All Question
-        </button>
       </div>
 
       {/* Filters */}
@@ -182,10 +176,14 @@ const ExamDetails = () => {
       </div>
 
       {/* Question List */}
-      {!loading && !error && questions.length > 0 && (
-        <ExamDetailsCard questions={questions} fetchExamQuestions={fetchExamQuestions} page={page} />
+      {!loading && !error && paginatedQuestions.length > 0 && (
+        <ExamDetailsCard
+          questions={paginatedQuestions}
+          fetchExamQuestions={fetchExamQuestions}
+          page={page}
+        />
       )}
-      {!loading && !error && questions.length === 0 && (
+      {!loading && !error && paginatedQuestions.length === 0 && (
         <p>No questions available. Please refine your filters.</p>
       )}
 
@@ -201,7 +199,7 @@ const ExamDetails = () => {
         <button
           onClick={() => setPage((prev) => prev + 1)}
           className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          disabled={questions.length < limit}
+          disabled={paginatedQuestions.length < limit}
         >
           Next
         </button>
