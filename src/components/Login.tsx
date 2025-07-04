@@ -2,7 +2,8 @@
 
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 const Login = () => {
   
@@ -10,28 +11,17 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter();
+  const {login, loading, user} = useAuth();
 
+  useEffect(() => {
+    if(!loading && user) {
+      router.push('/home')
+    }
+  }, [user, loading])
 
   async function handleLogin() {
     try {
-        if(!email || !password) {
-            alert('Anyone field is empty!');
-            return;
-        }
-        const data = {
-            email,
-            password
-        }
-        setIsLoading(true);
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/authentication/admin-login`, data);
-
-        if(response.data.status == true) {
-            localStorage.setItem('adminId', response.data.response.id);
-            localStorage.setItem('adminName', response.data.response.name);
-            router.push('/home')
-        } else {
-            alert(response.data.message)
-        }
+        login(email, password);
     } catch (error) {
         console.log(error)
         alert('Unable to login')
@@ -39,7 +29,7 @@ const Login = () => {
         setIsLoading(false);
     }
   }
-
+  if (loading || user) return <div>Loading...</div>;
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
       <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-2xl transform hover:scale-105 transition duration-300">

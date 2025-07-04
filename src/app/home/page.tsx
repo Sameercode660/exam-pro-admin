@@ -1,8 +1,5 @@
-import AdminDashboard from '@/components/AdminDashboard'
-import Navbar from '@/components/Navbar'
 import React from 'react'
-import Home from '@/components/Home'
-import Dashboard from '@/components/Dashboard'
+import Dashboard from '@/components/admin/dashboard-redirect/Dashboard'
 
 function page() {
   return (
