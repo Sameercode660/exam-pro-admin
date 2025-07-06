@@ -15,7 +15,7 @@ function Dashboard() {
     } else if(user?.role == Roles.admin) {
         return <AdminDashboard></AdminDashboard>
     } else if(user?.role == Roles.superUser) {
-        <SuperUserDashboard></SuperUserDashboard>
+        return <SuperUserDashboard></SuperUserDashboard>
     } else {
         <div>Loading...</div>
     }

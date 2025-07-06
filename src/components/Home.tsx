@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { Roles } from '@/context/AuthContext';
 
 function AdminDashboard({
   children,
@@ -15,6 +16,7 @@ function AdminDashboard({
   const [openQuestionMenu, setOpenQuestionMenu] = useState(false);
   const navigation = useRouter()
   const {logout} = useAuth();
+  const {user} = useAuth();
 
 
   return (
@@ -32,10 +34,16 @@ function AdminDashboard({
             >
               Dashboard
             </li>
-
-            {/* exam menu  */}
-
-            <li
+            {
+              user?.role == Roles.superAdmin ? ( <li
+              className={`py-2 px-4 hover:bg-gray-700 cursor-pointer}`}
+              onClick={() => navigation.push('/home')}
+            >
+              Manage
+            </li>) : 
+            (
+              <div>
+                 <li
               className="py-2 px-4 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
               onClick={() => setOpenExamMenu(prev => !prev)}
             >
@@ -90,6 +98,12 @@ function AdminDashboard({
                 </li>
               </ul>
             )}
+              </div>
+            )
+            }
+            {/* exam menu  */}
+
+           
 
             {/* Other menu  */}
             <li
