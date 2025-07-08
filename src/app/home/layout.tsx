@@ -1,6 +1,7 @@
 import React from 'react'
 import Home from '@/components/Home';
 import ProtectedRoute from '@/components/protected/ProtectedRoute';
+import DashboardHeading from '@/components/utils/DashboardHeading';
 
 function layout({
   children,
@@ -10,6 +11,7 @@ function layout({
   return (
     <div>
       <ProtectedRoute>
+        <DashboardHeading adminName='Sameer'></DashboardHeading>
         <Home children={children}></Home>
       </ProtectedRoute>
     </div>

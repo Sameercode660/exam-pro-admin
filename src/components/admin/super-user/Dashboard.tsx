@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
@@ -27,8 +27,10 @@ const Dashboard = () => {
 
       try {
         setLoading(true);
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/dashboard/dashboard-data-count`, { adminId });
-        console.log(response.data)
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_ROOT_URL}/dashboard/dashboard-data-count`,
+          { adminId }
+        );
         setData(response.data);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
@@ -42,8 +44,8 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-lg font-semibold text-gray-700">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-lg font-medium text-gray-700">Loading...</div>
       </div>
     );
   }
@@ -51,35 +53,30 @@ const Dashboard = () => {
   const { adminInfo, ...stats } = data;
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <h1 className="text-4xl font-bold text-gray-800 mb-6">Dashboard</h1>
-
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Admin Info */}
-          <Card className="col-span-1 p-4 bg-white shadow-xl rounded-lg">
-            <h2 className="text-xl font-semibold text-gray-800">Admin Info</h2>
-            <p className="text-sm text-gray-600 mt-2">Name: {adminInfo.name}</p>
-            <p className="text-sm text-gray-600">Email: {adminInfo.email}</p>
-          </Card>
-
-          {/* Statistics */}
-          <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-3 gap-6">
-            {Object.entries(stats).map(([key, value]) => (
-              <Card key={key} className="p-4 bg-white shadow-xl rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-800">{key}</h3>
-                <p className="text-2xl font-bold text-gray-600 mt-2">{value}</p>
-              </Card>
-            ))}
-          </div>
+    <div className="min-h-screen bg-white p-6">
+      <div className="max-w-7xl mx-auto flex flex-col items-center gap-6">
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full">
+          {Object.entries(stats).map(([key, value]) => (
+            <Card key={key} className="p-4 bg-white border rounded-lg text-center">
+              <h3 className="text-sm font-medium text-gray-800 capitalize">
+                {key.replace(/([A-Z])/g, ' $1')}
+              </h3>
+              <p className="text-3xl font-bold text-gray-900 mt-1">{value}</p>
+            </Card>
+          ))}
         </div>
 
-        {/* Reports Button */}
-        <div className="mt-6 flex justify-center">
-          <Button className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg shadow-md hover:bg-blue-700">
-            View Reports
-          </Button>
+        {/* Reports Button as Card */}
+        <div className="w-full md:w-1/2">
+          <Card className="p-4 border text-center cursor-pointer hover:shadow transition">
+            <Button
+              variant="ghost"
+              className="w-full text-lg font-medium text-gray-800"
+            >
+              📊 View Reports
+            </Button>
+          </Card>
         </div>
       </div>
     </div>

@@ -5,6 +5,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Roles } from '@/context/AuthContext';
+import DashboardHeading from './utils/DashboardHeading';
 
 function AdminDashboard({
   children,
@@ -20,20 +21,33 @@ function AdminDashboard({
 
 
   return (
+    <>
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
-      <div className="w-64 bg-gray-800 text-white h- ">
-        <div className="p-4 text-xl font-bold border-b border-gray-700">
-          Plugin Development
-        </div>
+      <div className="w-64 bg-gray-800 text-white">
         <nav className="mt-4">
           <ul>
+            {
+              user?.role == Roles.superAdmin ? ( <li className="py-2 px-4 hover:bg-gray-700 cursor-pointer" onClick={() => {
+                  navigation.push('/home/admin-profile')
+                }}>Profile</li>) : (<></>)
+            }
             <li
               className={`py-2 px-4 hover:bg-gray-700 cursor-pointer}`}
               onClick={() => navigation.push('/home')}
             >
               Dashboard
             </li>
+            {
+              user?.role == Roles.admin ? (
+                 <li
+                  className={`py-2 px-4 hover:bg-gray-700 cursor-pointer}`}
+                  onClick={() => navigation.push('/home/admin/create-super-user')}
+                >
+                  Create User
+                </li>
+              ) : (<></>)
+            }
             {
               user?.role == Roles.superAdmin ? ( <li
               className={`py-2 px-4 hover:bg-gray-700 cursor-pointer}`}
@@ -101,12 +115,13 @@ function AdminDashboard({
               </div>
             )
             }
-            {/* exam menu  */}
 
-           
 
             {/* Other menu  */}
-            <li
+           {
+            user?.role == Roles.superAdmin ? (
+              <li className="py-2 px-4 hover:bg-gray-700 cursor-pointer" onClick={logout}>Logout</li>
+            ) : ( <div><li
               className="py-2 px-4 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
               onClick={() => setMenuOpen(prev => !prev)}
             >
@@ -120,7 +135,8 @@ function AdminDashboard({
                 }}>Profile</li>
                 <li className="py-2 px-4 hover:bg-gray-700 cursor-pointer" onClick={logout}>Logout</li>
               </ul>
-            )}
+            )}</div>)
+           }
           </ul>
         </nav>
       </div>
@@ -130,6 +146,7 @@ function AdminDashboard({
         <div>{children}</div>
       </div>
     </div>
+    </>
   );
 }
 
