@@ -15,137 +15,151 @@ function AdminDashboard({
   const [menuOpen, setMenuOpen] = useState(false);
   const [openExamMenu, setOpenExamMenu] = useState(false);
   const [openQuestionMenu, setOpenQuestionMenu] = useState(false);
+  const [openGroupMenu, setOpenGroupMenu] = useState(false)
   const navigation = useRouter()
-  const {logout} = useAuth();
-  const {user} = useAuth();
+  const { logout } = useAuth();
+  const { user } = useAuth();
 
 
   return (
     <>
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <div className="w-64 bg-gray-800 text-white">
-        <nav className="mt-4">
-          <ul>
-            {
-              user?.role == Roles.superAdmin ? ( <li className="py-2 px-4 hover:bg-gray-700 cursor-pointer" onClick={() => {
+      <div className="flex h-screen bg-gray-100">
+        {/* Sidebar */}
+        <div className="w-64 bg-gray-800 text-white">
+          <nav className="mt-4">
+            <ul>
+              {
+                user?.role == Roles.superAdmin ? (<li className="py-2 px-4 hover:bg-gray-700 cursor-pointer" onClick={() => {
                   navigation.push('/home/admin-profile')
                 }}>Profile</li>) : (<></>)
-            }
-            <li
-              className={`py-2 px-4 hover:bg-gray-700 cursor-pointer}`}
-              onClick={() => navigation.push('/home')}
-            >
-              Dashboard
-            </li>
-            {
-              user?.role == Roles.admin ? (
-                 <li
+              }
+              <li
+                className={`py-2 px-4 hover:bg-gray-700 cursor-pointer}`}
+                onClick={() => navigation.push('/home')}
+              >
+                Dashboard
+              </li>
+              {
+                user?.role == Roles.admin ? (
+                  <li
+                    className={`py-2 px-4 hover:bg-gray-700 cursor-pointer}`}
+                    onClick={() => navigation.push('/home/admin/create-super-user')}
+                  >
+                    Create User
+                  </li>
+                ) : (<></>)
+              }
+              {
+                user?.role == Roles.superAdmin ? (<li
                   className={`py-2 px-4 hover:bg-gray-700 cursor-pointer}`}
-                  onClick={() => navigation.push('/home/admin/create-super-user')}
+                  onClick={() => navigation.push('/home')}
                 >
-                  Create User
-                </li>
-              ) : (<></>)
-            }
-            {
-              user?.role == Roles.superAdmin ? ( <li
-              className={`py-2 px-4 hover:bg-gray-700 cursor-pointer}`}
-              onClick={() => navigation.push('/home')}
-            >
-              Manage
-            </li>) : 
-            (
-              <div>
-                 <li
-              className="py-2 px-4 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
-              onClick={() => setOpenExamMenu(prev => !prev)}
-            >
-              Exams
-              {openExamMenu ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-            </li>
-            {openExamMenu && (
-              <ul className="ml-4">
-                {/* create exam  */}
-                <li
-                  className={`py-2 px-4 hover:bg-gray-700 cursor-pointer}`}
-                  onClick={() => navigation.push('/home/exams/create-exams')}
-                >
-                  Create Exam
-                </li>
+                  Manage
+                </li>) :
+                  (
+                    <div>
+                      <li
+                        className="py-2 px-4 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
+                        onClick={() => setOpenExamMenu(prev => !prev)}
+                      >
+                        Exams
+                        {openExamMenu ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                      </li>
+                      {openExamMenu && (
+                        <ul className="ml-4">
+                          {/* create exam  */}
+                          <li
+                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer}`}
+                            onClick={() => navigation.push('/home/exams/create-exams')}
+                          >
+                            Create Exam
+                          </li>
 
-                {/* manage exam  */}
-                <li
-                  className={`py-2 px-4 hover:bg-gray-700 cursor-pointer}`}
-                  onClick={() => navigation.push('/home/exams/manage-exams')}
-                >
-                  Manage Exam
-                </li>
-              </ul>
-            )}
+                          {/* manage exam  */}
+                          <li
+                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer}`}
+                            onClick={() => navigation.push('/home/exams/manage-exams')}
+                          >
+                            Manage Exam
+                          </li>
+                        </ul>
+                      )}
 
-            {/* Question menu  */}
+                      {/* Question menu  */}
 
-            <li
-              className="py-2 px-4 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
-              onClick={() => setOpenQuestionMenu(prev => !prev)}
-            >
-              Questions
-              {openQuestionMenu ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-            </li>
-            {openQuestionMenu && (
-              <ul className="ml-4">
-                {/* create exam  */}
-                <li
-                  className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
-                  onClick={() => navigation.push('/home/questions/create-questions')}
-                >
-                  Create Questions
-                </li>
+                      <li
+                        className="py-2 px-4 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
+                        onClick={() => setOpenQuestionMenu(prev => !prev)}
+                      >
+                        Questions
+                        {openQuestionMenu ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                      </li>
+                      {openQuestionMenu && (
+                        <ul className="ml-4">
+                          {/* create exam  */}
+                          <li
+                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                            onClick={() => navigation.push('/home/questions/create-questions')}
+                          >
+                            Create Questions
+                          </li>
 
-                {/* manage exam  */}
-                <li
-                  className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
-                  onClick={() => navigation.push('/home/questions/manage-questions')}
-                >
-                  Manage Questions
-                </li>
-              </ul>
-            )}
-              </div>
-            )
-            }
+                          {/* manage exam  */}
+                          <li
+                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                            onClick={() => navigation.push('/home/questions/manage-questions')}
+                          >
+                            Manage Questions
+                          </li>
+                        </ul>
+                      )}
+                      {/* //  groups menu  */}
+
+                      <li
+                        className="py-2 px-4 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
+                        onClick={() => setOpenGroupMenu(prev => !prev)}
+                      >
+                        Groups
+                        {openGroupMenu ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                      </li>
+                      {openGroupMenu && (
+                        <ul className="ml-4">
+                          {/* create exam  */}
+                          <li
+                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                            onClick={() => navigation.push('/home/groups/create-group')}
+                          >
+                            Create Group
+                          </li>
+
+                          {/* manage exam  */}
+                          <li
+                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                            onClick={() => navigation.push('/home/questions/manage-group')}
+                          >
+                            Manage Group
+                          </li>
+                        </ul>
+                      )}
+
+                    </div>
 
 
-            {/* Other menu  */}
-           {
-            user?.role == Roles.superAdmin ? (
+                  )
+              }
+
+
+              {/* Other menu  */}
               <li className="py-2 px-4 hover:bg-gray-700 cursor-pointer" onClick={logout}>Logout</li>
-            ) : ( <div><li
-              className="py-2 px-4 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
-              onClick={() => setMenuOpen(prev => !prev)}
-            >
-              More
-              {menuOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-            </li>
-            {menuOpen && (
-              <ul className="ml-4">
-                <li className="py-2 px-4 hover:bg-gray-700 cursor-pointer" onClick={() => {
-                  navigation.push('/home/admin-profile')
-                }}>Profile</li>
-                <li className="py-2 px-4 hover:bg-gray-700 cursor-pointer" onClick={logout}>Logout</li>
-              </ul>
-            )}</div>)
-           }
-          </ul>
-        </nav>
-      </div>
+            </ul>
+          </nav>
+        </div>
 
-      {/* Main Content */}
-      <div className="flex-1 p-6">
-        <div>{children}</div>
+        {/* Main Content */}
+        <div className="flex-1 p-6">
+          <div>{children}</div>
+        </div>
       </div>
-    </div>
     </>
   );
 }

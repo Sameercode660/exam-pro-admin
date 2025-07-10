@@ -24,7 +24,6 @@ const Organizations = () => {
     setLoading(true);
     try {
       const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/super-admin/organizations`, { search });
-      console.log(res.data)
       setOrganizations(res.data);
     } catch (err) {
       console.error('Failed to fetch organizations', err);
@@ -63,23 +62,35 @@ const Organizations = () => {
       {loading ? (
         <div className="text-gray-500">Loading...</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {organizations.map((org) => (
-            <div
-              key={org.id}
-              className="bg-white border rounded-xl shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition"
-            >
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">{org.name}</h2>
-              <div className="text-sm text-gray-600 space-y-1">
-                <p><strong>Email:</strong> {org.email}</p>
-                <p><strong>Phone:</strong> {org.phone}</p>
-                <p><strong>Address:</strong> {org.address}</p>
-                <p><strong>State:</strong> {org.State}</p>
-                <p><strong>Country:</strong> {org.Country} ({org.CountryCode})</p>
-                <p><strong>Created:</strong> {new Date(org.createdAt).toLocaleDateString()}</p>
-              </div>
-            </div>
-          ))}
+        <div className="overflow-x-auto">
+          <table className="min-w-full table-auto border border-gray-200">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="border px-4 py-2 text-left">Name</th>
+                <th className="border px-4 py-2 text-left">Email</th>
+                <th className="border px-4 py-2 text-left">Phone</th>
+                <th className="border px-4 py-2 text-left">Address</th>
+                <th className="border px-4 py-2 text-left">State</th>
+                <th className="border px-4 py-2 text-left">Country</th>
+                <th className="border px-4 py-2 text-left">Code</th>
+                <th className="border px-4 py-2 text-left">Created At</th>
+              </tr>
+            </thead>
+            <tbody>
+              {organizations.map((org) => (
+                <tr key={org.id} className="hover:bg-gray-50">
+                  <td className="border px-4 py-2">{org.name}</td>
+                  <td className="border px-4 py-2">{org.email}</td>
+                  <td className="border px-4 py-2">{org.phone}</td>
+                  <td className="border px-4 py-2">{org.address}</td>
+                  <td className="border px-4 py-2">{org.State}</td>
+                  <td className="border px-4 py-2">{org.CountryCode + org.Country}</td>
+                  {/* <td className="border px-4 py-2">{org.CountryCode}</td> */}
+                  <td className="border px-4 py-2">{new Date(org.createdAt).toLocaleDateString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

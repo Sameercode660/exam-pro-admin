@@ -7,10 +7,10 @@ import { useRouter } from 'next/navigation';
 type Role = 'SuperAdmin' | 'Admin' | 'SuperUser' | 'User';
 
 export const Roles = {
-    superAdmin : 'SuperAdmin',
-    admin: 'Admin',
-    superUser: 'SuperUser',
-    user: 'User'
+  superAdmin: 'SuperAdmin',
+  admin: 'Admin',
+  superUser: 'SuperUser',
+  user: 'User'
 }
 
 interface AuthUser {
@@ -18,6 +18,7 @@ interface AuthUser {
   name: string;
   email: string;
   role: Role;
+  organizationId: number;
 }
 
 interface AuthContextType {
@@ -30,8 +31,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  login: async () => {},
-  logout: async () => {},
+  login: async () => { },
+  logout: async () => { },
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -48,6 +49,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_ROOT_URL}/authentication/user-auth`, {
           withCredentials: true,
         });
+        console.log(res.data)
         setUser(res.data.user);
       } catch (error) {
         setUser(null);
@@ -65,7 +67,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       { email, password },
       { withCredentials: true }
     );
-
+    console.log(res.data)
     setUser(res.data.user);
     router.push('/home'); // redirect on successful login
   };

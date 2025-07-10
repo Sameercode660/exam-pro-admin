@@ -4,6 +4,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import QuoteLoader from "./utils/QuoteLoader";
 
 const Login = () => {
   
@@ -29,7 +30,7 @@ const Login = () => {
         setIsLoading(false);
     }
   }
-  if (loading || user) return <div>Loading...</div>;
+  if (loading || user) return <QuoteLoader></QuoteLoader>;
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
       <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-2xl transform hover:scale-105 transition duration-300">

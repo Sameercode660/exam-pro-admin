@@ -11,10 +11,10 @@ const Dashboard = () => {
 
         {/* Left Sidebar: Small Stats Cards */}
         <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-1 gap-4">
-          <StatCard title="Total Users" value={24} />
-          <StatCard title="Total Participants" value={120} />
-          <StatCard title="Total Exams" value={12} />
-          <StatCard title="Total Questions" value={456} />
+          <StatCard title="Users" value={24} />
+          <StatCard title="Participants" value={120} />
+          <StatCard title="Exams" value={12} />
+          <StatCard title="Questions" value={456} />
           <StatCard title="Active Exams" value={8} />
           <StatCard title="Inactive Exams" value={4} />
         </div>
