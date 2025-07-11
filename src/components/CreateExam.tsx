@@ -1,5 +1,6 @@
 'use client';
 
+import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
@@ -10,9 +11,11 @@ function CreateExam() {
   const [examCode, setExamCode] = useState('');
   const [duration, setDuration] = useState('');
   const [status, setStatus] = useState('');
-  const [adminId, setAdminId] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const {user} = useAuth();
+
+  const adminId = user?.id;
 
   const router = useRouter();
 
@@ -24,7 +27,6 @@ function CreateExam() {
 
   useEffect(() => {
     generateExamCode();
-    setAdminId(Number(localStorage.getItem('adminId')));
   }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

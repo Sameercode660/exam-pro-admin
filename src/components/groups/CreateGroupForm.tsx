@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';
 
@@ -11,15 +11,21 @@ const CreateGroupForm = () => {
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  // Set default start date to today on load
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    setStartDate(today);
+  }, []);
+
   const resetForm = () => {
     setName('');
     setDescription('');
-    setStartDate('');
+    const today = new Date().toISOString().split('T')[0];
+    setStartDate(today);
     setEndDate('');
   };
 
@@ -27,26 +33,40 @@ const CreateGroupForm = () => {
     const id = setTimeout(() => {
       setError('');
       clearTimeout(id);
-    }, 2000)
-  }
+    }, 3000);
+  };
 
   const handleSubmit = async () => {
     setLoading(true);
     setError(null);
     setSuccess(null);
-    
-    if (new Date(startDate) >= new Date(endDate)) {
+
+    const todayDate = new Date();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // Validation
+    if (!name || !description || !startDate || !endDate) {
+      setError('All fields are required.');
+      setLoading(false);
+      resetError();
+      return;
+    }
+
+    if (start < new Date(todayDate.toDateString())) {
+      setError('Start date cannot be in the past.');
+      setLoading(false);
+      resetError();
+      return;
+    }
+
+    if (start >= end) {
       setError('Start date must be before end date.');
       setLoading(false);
-      resetError()
+      resetError();
       return;
     }
-    if(!name || !description || !startDate || !endDate) {
-      setError("Any field is empty");
-      setLoading(false);
-      resetError()
-      return;
-    }
+
     try {
       const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/groups/create`, {
         name,
@@ -56,13 +76,10 @@ const CreateGroupForm = () => {
         createdById: Number(user?.id),
         organizationId: Number(user?.organizationId),
       });
-      
- 
-      console.log(res.data)
+
       setSuccess('Group created successfully!');
       resetForm();
     } catch (err: any) {
-      console.log(err)
       const errMsg = err?.response?.data?.error || 'Failed to create group.';
       setError(errMsg);
     } finally {
@@ -82,7 +99,6 @@ const CreateGroupForm = () => {
           <label className="block mb-1 text-sm font-medium text-gray-700">Group Name</label>
           <input
             type="text"
-            name="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="w-full border px-4 py-2 rounded-md focus:ring focus:ring-blue-200"
@@ -93,11 +109,11 @@ const CreateGroupForm = () => {
         <div>
           <label className="block mb-1 text-sm font-medium text-gray-700">Description</label>
           <textarea
-            name="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="w-full border px-4 py-2 rounded-md focus:ring focus:ring-blue-200"
             rows={3}
+            required
           />
         </div>
 
@@ -106,8 +122,8 @@ const CreateGroupForm = () => {
             <label className="block mb-1 text-sm font-medium text-gray-700">Start Date</label>
             <input
               type="date"
-              name="startDate"
               value={startDate}
+              min={new Date().toISOString().split('T')[0]} // prevents selecting past dates
               onChange={(e) => setStartDate(e.target.value)}
               className="w-full border px-4 py-2 rounded-md focus:ring focus:ring-blue-200"
               required
@@ -117,7 +133,6 @@ const CreateGroupForm = () => {
             <label className="block mb-1 text-sm font-medium text-gray-700">End Date</label>
             <input
               type="date"
-              name="endDate"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
               className="w-full border px-4 py-2 rounded-md focus:ring focus:ring-blue-200"
@@ -128,7 +143,7 @@ const CreateGroupForm = () => {
 
         <div className="text-right">
           <button
-            type='button'
+            type="button"
             onClick={handleSubmit}
             disabled={loading}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md disabled:opacity-50"

@@ -3,7 +3,7 @@ import React from 'react'
 function page() {
   return (
     <>
-      manage section
+     manage participant 
     </>
   )
 }

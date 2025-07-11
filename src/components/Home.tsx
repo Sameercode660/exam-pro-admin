@@ -15,7 +15,8 @@ function AdminDashboard({
   const [menuOpen, setMenuOpen] = useState(false);
   const [openExamMenu, setOpenExamMenu] = useState(false);
   const [openQuestionMenu, setOpenQuestionMenu] = useState(false);
-  const [openGroupMenu, setOpenGroupMenu] = useState(false)
+  const [openGroupMenu, setOpenGroupMenu] = useState(false);
+  const [openParticipantMenu, setOpenParticipantMenu] = useState(false)
   const navigation = useRouter()
   const { logout } = useAuth();
   const { user } = useAuth();
@@ -135,13 +136,40 @@ function AdminDashboard({
                           {/* manage exam  */}
                           <li
                             className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
-                            onClick={() => navigation.push('/home/questions/manage-group')}
+                            onClick={() => navigation.push('/home/groups/manage-groups')}
                           >
                             Manage Group
                           </li>
                         </ul>
                       )}
 
+                      
+                      <li
+                        className="py-2 px-4 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
+                        onClick={() => setOpenParticipantMenu(prev => !prev)}
+                      >
+                        Participant
+                        {openParticipantMenu ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                      </li>
+                      {openParticipantMenu && (
+                        <ul className="ml-4">
+                          {/* create exam  */}
+                          <li
+                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                            onClick={() => navigation.push('/home/participant')}
+                          >
+                            Create Participant
+                          </li>
+
+                          {/* manage exam  */}
+                          <li
+                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                            onClick={() => navigation.push('/home/gr/manage-group')}
+                          >
+                            Manage Participant
+                          </li>
+                        </ul>
+                      )}
                     </div>
 
 

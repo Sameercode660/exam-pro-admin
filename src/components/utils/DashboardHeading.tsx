@@ -20,9 +20,9 @@ const DashboardHeading = () => {
         <div className="w-8 h-8 rounded-full border flex items-center justify-center text-lg font-semibold">
           {initial}
         </div>
-        <div className='flex'>
+        <div className='flex flex-col'>
           <span className="text-lg font-handwriting">{adminName}</span>
-          <span className="text-lg font-handwriting">Profile</span>
+          <span className="text-[8px] font-handwriting text-blue underline">Profile</span>
         </div>
       </div>
     </div>
