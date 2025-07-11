@@ -57,7 +57,7 @@ const CreateGroupForm = () => {
         organizationId: Number(user?.organizationId),
       });
       
-      alert("function called")
+ 
       console.log(res.data)
       setSuccess('Group created successfully!');
       resetForm();
