@@ -11,7 +11,7 @@ function layout({
   return (
     <div>
       <ProtectedRoute>
-        <DashboardHeading adminName='Sameer'></DashboardHeading>
+        <DashboardHeading></DashboardHeading>
         <Home children={children}></Home>
       </ProtectedRoute>
     </div>

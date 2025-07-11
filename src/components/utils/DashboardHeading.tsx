@@ -1,14 +1,14 @@
 'use client';
 
+import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 
-interface AdminHeaderProps {
-  adminName: string;
-}
 
-const DashboardHeading: React.FC<AdminHeaderProps> = ({ adminName }) => {
-  const initial = adminName.charAt(0).toUpperCase();
+const DashboardHeading = () => {
+  const {user} = useAuth()
+  const adminName = user?.name;
+  const initial = adminName?.charAt(0).toUpperCase();
   const router = useRouter();
   return (
     <div className="flex justify-between p-5 bg-gray-500 text-white">

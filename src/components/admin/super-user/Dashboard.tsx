@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/AuthContext';
 
 const Dashboard = () => {
   const [data, setData] = useState({
@@ -16,20 +17,16 @@ const Dashboard = () => {
     adminInfo: { name: '', email: '' },
   });
   const [loading, setLoading] = useState(true);
+  const {user} = useAuth();
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      const adminId = localStorage.getItem('adminId');
-      if (!adminId) {
-        console.error('Admin ID not found in localStorage');
-        return;
-      }
-
+    
       try {
         setLoading(true);
         const response = await axios.post(
           `${process.env.NEXT_PUBLIC_ROOT_URL}/dashboard/dashboard-data-count`,
-          { adminId }
+          { adminId: user?.id }
         );
         setData(response.data);
       } catch (error) {
