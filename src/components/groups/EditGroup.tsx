@@ -4,16 +4,19 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import Toast from '../utils/Toast';
 import Spinner from '../utils/Spinner';
+import { useAuth } from '@/context/AuthContext';
 
 const EditGroup = ({ groupId, onClose, onSuccess }: { groupId: number, onClose: () => void, onSuccess: () => void }) => {
   const [groupData, setGroupData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+  const {user} = useAuth();
 
   useEffect(() => {
     const fetchGroup = async () => {
       try {
-        const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/groups/get-single`, { groupId });
+        const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/groups/fetch-single-group`, { groupId });
+        console.log(res.data)
         setGroupData(res.data.group);
       } catch (err: any) {
         setToast({ type: 'error', message: err.response?.data?.error || 'Failed to fetch group' });
@@ -27,7 +30,7 @@ const EditGroup = ({ groupId, onClose, onSuccess }: { groupId: number, onClose: 
     try {
       const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/groups/update`, {
         groupId,
-        adminId: groupData.createdById,
+        adminId: user?.id,
         name: groupData.name,
         description: groupData.description,
         startDate: groupData.startDate,
@@ -52,7 +55,7 @@ const EditGroup = ({ groupId, onClose, onSuccess }: { groupId: number, onClose: 
   if (!groupData) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-[rgba(0,0,0,0.3)] flex items-center justify-center z-50">
       {toast && (
         <Toast
           message={toast.message}

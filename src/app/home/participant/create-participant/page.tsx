@@ -1,9 +1,10 @@
+import CreateParticipant from '@/components/participants/CreateParticipants'
 import React from 'react'
 
 function page() {
   return (
     <>
-     create participant 
+     <CreateParticipant></CreateParticipant>
     </>
   )
 }

@@ -156,7 +156,7 @@ function AdminDashboard({
                           {/* create exam  */}
                           <li
                             className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
-                            onClick={() => navigation.push('/home/participant')}
+                            onClick={() => navigation.push('/home/participant/create-participant')}
                           >
                             Create Participant
                           </li>
