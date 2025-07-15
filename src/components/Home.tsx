@@ -46,7 +46,7 @@ function AdminDashboard({
                     className={`py-2 px-4 hover:bg-gray-700 cursor-pointer}`}
                     onClick={() => navigation.push('/home/admin/create-super-user')}
                   >
-                    Create User
+                    Create Super User
                   </li>
                 ) : (<></>)
               }
@@ -164,7 +164,7 @@ function AdminDashboard({
                           {/* manage exam  */}
                           <li
                             className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
-                            onClick={() => navigation.push('/home/gr/manage-group')}
+                            onClick={() => navigation.push('/home/participant/manage-participant')}
                           >
                             Manage Participant
                           </li>

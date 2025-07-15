@@ -1,9 +1,10 @@
+import ManageParticipants from '@/components/participants/ManageParticipants'
 import React from 'react'
 
 function page() {
   return (
     <>
-     manage participant 
+     <ManageParticipants></ManageParticipants>
     </>
   )
 }
