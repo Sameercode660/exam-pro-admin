@@ -6,6 +6,7 @@ import { Roles, useAuth } from '@/context/AuthContext';
 import Toast from '../utils/Toast';
 import Spinner from '../utils/Spinner';
 import EditGroup from './EditGroup';
+import { useRouter } from 'next/navigation';
 
 interface Group {
   id: number;
@@ -30,6 +31,7 @@ const ManageGroups = () => {
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
   const [toast, setToast] = useState<{ message: string; type?: 'success' | 'error' } | null>(null);
   const [editModal, setEditModal] = useState<{ open: boolean, groupId: number | null }>({ open: false, groupId: null });
+  const router = useRouter();
 
 
 
@@ -168,7 +170,9 @@ const ManageGroups = () => {
                   <td className="px-4 py-2">{group.createdBy.name}</td>
                   <td className="px-4 py-2">{new Date(group.createdAt).toLocaleDateString('en-GB')}</td>
                   <td className="px-4 py-2 flex justify-between items-center gap-2">
-                    <button className="text-blue-600 hover:underline">View</button>
+                    <button className="text-blue-600 hover:underline" onClick={() => {
+                      router.push(`/home/groups/${group.id}`)
+                    }}>View</button>
                     {(user?.id === group.createdBy.id || user?.role === Roles.admin) && (
                       <>
                         <button className="text-yellow-600 hover:underline" onClick={() => {
