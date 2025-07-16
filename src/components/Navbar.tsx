@@ -1,23 +1,20 @@
 'use client'
-
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export default function Navbar() {
-  const adminName = "sdmin Name"; // Replace with dynamic admin name if needed
+  const adminName = "admin Name";  
 
-  const handleLogout = () => {
-    // Implement logout functionality
+  const handleLogout = () => { 
     console.log("Logout clicked");
   };
 
   return (
     <nav className="flex items-center justify-between p-4 bg-gray-100 shadow-md pl-10 pr-10">
-      {/* Website Name */}
+     
       <div className="text-2xl font-bold text-gray-800">ExamPro</div>
 
-      {/* Admin Info */}
+       
       <div className="flex items-center space-x-4">
         <DropdownMenu>
           <DropdownMenuTrigger>

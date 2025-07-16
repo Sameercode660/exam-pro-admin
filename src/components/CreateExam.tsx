@@ -4,170 +4,197 @@ import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function CreateExam() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [examCode, setExamCode] = useState('');
-  const [duration, setDuration] = useState('');
-  const [status, setStatus] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [duration, setDuration] = useState(''); // Only used when not scheduled
+  const [status, setStatus] = useState('Active');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [scheduleMode, setScheduleMode] = useState(false);
+
   const [loading, setLoading] = useState(false);
-  const {user} = useAuth();
+  const [minDateTime, setMinDateTime] = useState('');
 
-  const adminId = user?.id;
-
+  const { user } = useAuth();
   const router = useRouter();
-
-  // Generate a random exam code
-  const generateExamCode = () => {
-    const randomCode = `EX-${Math.floor(Math.random() * 999999)}`;
-    setExamCode(randomCode);
-  };
+  const adminId = user?.id;
 
   useEffect(() => {
     generateExamCode();
+    setMinDateTime(getCurrentDateTime());
   }, []);
+
+  const generateExamCode = () => {
+    const randomCode = `EX-${Math.floor(100000 + Math.random() * 900000)}`;
+    setExamCode(randomCode);
+  };
+
+  const getCurrentDateTime = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  const calculateDuration = () => {
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    const diffMs = end.getTime() - start.getTime();
+    const diffMins = Math.floor(diffMs / 60000); // Convert ms to minutes
+    return diffMins;
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(null);
 
     try {
       setLoading(true);
 
-      const response = await axios.post('http://localhost:3000/api/exams/create-exam', {
+      const payload = {
         title,
         description,
         examCode,
-        duration: Number(duration),
-        status,
+        duration: scheduleMode ? calculateDuration() : Number(duration),
+        status: scheduleMode ? 'Scheduled' : status,
+        startTime: scheduleMode && startTime ? startTime : null,
+        endTime: scheduleMode && endTime ? endTime : null,
         createdByAdminId: adminId,
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      };
 
-      setLoading(false);
-
-      if (response.data.status === false) {
-        alert('Unable to create the exam');
-        return;
-      }
-
-      alert('Exam Created Successfully');
+      console.log(payload)
+      const response = await axios.post('http://localhost:3000/api/exams/create-exam', payload);
+      console.log(response.data)
+      toast.success('Exam created successfully');
       router.push('/home/exams/manage-exams');
-
-      setTitle('');
-      setDescription('');
-      generateExamCode(); // Generate a new code for a fresh form
-      setDuration('');
-      setStatus('');
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message);
-      console.error('Error:', err);
+      toast.error(err.response?.data?.message || err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="bg-white p-6 rounded shadow-md">
-      <h2 className="text-xl font-semibold mb-4">Create Exam</h2>
+    <div className="bg-white p-8 rounded-2xl shadow-xl max-w-3xl mx-auto mt-10 space-y-6 border border-gray-200">
+      <h2 className="text-2xl font-bold text-gray-800">Create New Exam</h2>
 
-      {error && <div className="mb-4 text-red-600">{error}</div>}
-
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label htmlFor="title" className="block text-sm font-medium mb-2">
-            Title
-          </label>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label className="block text-sm font-semibold text-gray-600 mb-1">Title</label>
           <input
             type="text"
-            id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-3 py-2 border rounded"
+            className="w-full px-4 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-400"
             required
           />
         </div>
 
-        <div className="mb-4">
-          <label htmlFor="description" className="block text-sm font-medium mb-2">
-            Description
-          </label>
+        <div>
+          <label className="block text-sm font-semibold text-gray-600 mb-1">Description</label>
           <textarea
-            id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full px-3 py-2 border rounded"
             rows={4}
-            required
-          ></textarea>
-        </div>
-
-        {/* <div className="mb-4 flex items-center gap-4">
-          <div className="w-full">
-            <label htmlFor="examCode" className="block text-sm font-medium mb-2">
-              Exam Code
-            </label>
-            <input
-              disabled
-              type="text"
-              id="examCode"
-              value={examCode}
-              className="w-full px-3 py-2 border rounded"
-              required
-            />
-          </div>
-          <button
-            type="button"
-            onClick={generateExamCode}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            Generate Code
-          </button>
-        </div> */}
-
-        <div className="mb-4">
-          <label htmlFor="duration" className="block text-sm font-medium mb-2">
-            Duration (in minutes)
-          </label>
-          <input
-            type="number"
-            id="duration"
-            value={duration}
-            onChange={(e) => setDuration(e.target.value)}
-            className="w-full px-3 py-2 border rounded"
+            className="w-full px-4 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-400"
             required
           />
         </div>
 
-        <div className="mb-4">
-          <label htmlFor="status" className="block text-sm font-medium mb-2">
-            Status
-          </label>
-          <select
-            id="status"
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="w-full px-3 py-2 border rounded"
-            required
-          >
-            <option value="">Select Status</option>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-          </select>
+        <div className='flex justify-between w-full gap-3'>
+          {!scheduleMode && (
+            <div className='w-[50%]'>
+              <label className="block text-sm font-semibold text-gray-600 mb-1">Duration (minutes)</label>
+              <input
+                type="number"
+                min={1}
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+                className="w-full px-4 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-400"
+                required
+              />
+            </div>
+          )}
+
+          {!scheduleMode && (
+            <div className='w-[50%]'>
+              <label className="block text-sm font-semibold text-gray-600 mb-1">Status</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="w-full px-4 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-400"
+                required
+              >
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+          )}
+
         </div>
+        <div className="flex items-center space-x-3">
+          <input
+            type="checkbox"
+            id="schedule"
+            checked={scheduleMode}
+            onChange={(e) => setScheduleMode(e.target.checked)}
+            className="w-5 h-5 text-blue-600"
+          />
+          <label htmlFor="schedule" className="text-gray-700 font-medium">Schedule this Exam</label>
+        </div>
+
+        {scheduleMode && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-600 mb-1">Start Time</label>
+              <input
+                type="datetime-local"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                min={minDateTime}
+                className="w-full px-4 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-400"
+                required={scheduleMode}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-600 mb-1">End Time</label>
+              <input
+                type="datetime-local"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                min={startTime || minDateTime}
+                className="w-full px-4 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-400"
+                required={scheduleMode}
+              />
+            </div>
+
+            {startTime && endTime && (
+              <div className="md:col-span-2 text-gray-600 text-sm">
+                <strong>Auto Duration:</strong> {calculateDuration()} minutes
+              </div>
+            )}
+          </div>
+        )}
 
         <button
           type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition flex justify-center items-center gap-2"
         >
-          {loading ? 'Loading...' : 'Create Exam'}
+          {loading && <Loader2 className="animate-spin w-5 h-5" />}
+          {loading ? 'Creating...' : 'Create Exam'}
         </button>
       </form>
+      <ToastContainer></ToastContainer>
     </div>
   );
 }

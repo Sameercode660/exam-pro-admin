@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useParams } from "next/navigation";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface QuestionOption {
   id: number;
@@ -68,15 +70,15 @@ const AddQuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestion
       });
 
       if(response.data.status == false) {
-        alert(response.data.message);
+        toast.success(response.data.message)
       } else {
-        alert(response.data.message);
+        toast.success(response.data.message)
       }
     } catch (err: any) {
       if (err.response?.status === 409) {
-        setError("This question is already added to the exam.");
+        toast.success("This question is already added to the exam.")
       } else {
-        setError("An error occurred while adding the question.");
+        toast.success("An error occurred while adding the question.")
       }
     } finally {
       // Reset the loading state for the specific question
@@ -155,6 +157,7 @@ const AddQuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestion
           {error}
         </div>
       )}
+      <ToastContainer position="top-center"></ToastContainer>
     </div>
   );
 };

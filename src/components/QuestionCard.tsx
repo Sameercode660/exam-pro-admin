@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+
 
 interface QuestionOption {
   id: number;
@@ -50,11 +52,15 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestions, 
   const [loading, setLoading] = useState(false);
   const [openDeletePopup, setOpenDeletePopup] = useState(false);
   const router = useRouter();
-
+  const {user} = useAuth();
   // Function to delete the question
-  const handleDelete = async (id: number, adminId: number) => {
+  const handleDelete = async (id: number) => {
+    
+    
     try {
-      const data = { questionId: id, adminId };
+
+      const data = { questionId: id, adminId: user?.id };
+      console.log(data)
       console.log(data);
 
       setLoading(true);
@@ -180,7 +186,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestions, 
                   <button
                     className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600"
                     onClick={() =>
-                      handleDelete(question.id, Number(localStorage.getItem("adminId")))
+                      handleDelete(question.id)
                     }
                     disabled={loading}
                   >

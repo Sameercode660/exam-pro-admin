@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams } from 'next/navigation';
 import ExamDetailsCard from './ExamDetailsCard';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const ExamDetails = () => {
   const [categories, setCategories] = useState([]);
@@ -29,7 +31,7 @@ const ExamDetails = () => {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/filtering/fetch-category`, { adminId });
       setCategories(response.data || []);
     } catch (err) {
-      setError('Failed to fetch categories. Please try again later.');
+      toast.error('Failed to fetch categories. Please try again later.');
       console.error(err);
     }
   };
@@ -42,7 +44,7 @@ const ExamDetails = () => {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/filtering/fetch-topics`, { categoryId, adminId });
       setTopics(response.data || []);
     } catch (err) {
-      setError('Failed to fetch topics. Please try again later.');
+      toast.error('Failed to fetch topics. Please try again later.');
       console.error(err);
     }
   };
@@ -59,7 +61,7 @@ const ExamDetails = () => {
       setFilteredQuestions(response.data.questions || []);
     } catch (err) {
       console.error('Error fetching exam questions:', err);
-      setError('Failed to fetch questions. Please try again later.');
+      toast.error('Failed to fetch questions. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -204,6 +206,7 @@ const ExamDetails = () => {
           Next
         </button>
       </div>
+      <ToastContainer position='top-center'></ToastContainer>
     </div>
   );
 };

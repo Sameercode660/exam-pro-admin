@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 interface Admin {
   id: number;
@@ -27,6 +28,8 @@ interface Exam {
   updatedAt: string;
   createdBy: Admin;
   updatedBy: Admin;
+  startTime: string;
+  endTime: string;
 }
 
 function ManageExam() {
@@ -37,15 +40,15 @@ function ManageExam() {
   const [error, setError] = useState<null | string>(null);
   const [openDeletePopup, setOpenDeletePopup] = useState(false);
   const router = useRouter();
+  const { user } = useAuth();
+  const adminId = user?.id
 
-  useEffect(() => {
-    fetchExams(Number(localStorage.getItem('adminId')));
-  }, []);
-
-  const fetchExams = async (adminId: number) => {
+  const fetchExams = async () => {
     try {
       setLoading(true);
+      console.log(adminId)
       const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/exams/fetch-all-exam`, { adminId });
+      console.log(response)
       setExams(response.data.response);
       setLoading(false);
     } catch (err) {
@@ -77,7 +80,7 @@ function ManageExam() {
     }
   };
 
-  const handleDelete = async (id: number, adminId: number) => {
+  const handleDelete = async (id: number) => {
     try {
       setDeleteLoading(true);
       const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/exams/delete-exam`, {
@@ -91,7 +94,7 @@ function ManageExam() {
         alert(response.data.message);
         return
       }
-      fetchExams(Number(localStorage.getItem('adminId')));
+      fetchExams();
     } catch (error) {
       if (error instanceof Error) {
         alert(error.message);
@@ -101,7 +104,9 @@ function ManageExam() {
     }
   };
 
-
+  useEffect(() => {
+    fetchExams()
+  }, [])
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -126,7 +131,7 @@ function ManageExam() {
         </button>
         <button
           onClick={() => {
-            fetchExams(Number(localStorage.getItem('adminId')))
+            fetchExams()
           }}
           className="mt-2 ml-1 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
@@ -148,9 +153,18 @@ function ManageExam() {
                   <h2 className="text-lg font-semibold">{exam.title.toUpperCase()}</h2>
                   <p className='font-semibold text-gray-500'>{exam.description}</p>
                   <div className='flex space-x-5'>
-                  <p className='font-semibold text-gray-500 text-sm bg-gray-200 flex justify-center items-center rounded pl-2 pr-2'> {exam.examCode}</p>
-                  <p className='font-semibold text-gray-500 text-sm bg-gray-200 flex justify-center items-center rounded pl-2 pr-2'>{exam.duration} minutes</p>
-                  <p className='font-semibold text-gray-500 text-sm bg-gray-200 flex justify-center items-center rounded pl-2 pr-2'>{exam.status}</p>
+                    <p className='font-semibold text-gray-500 text-sm bg-gray-200 flex justify-center items-center rounded pl-2 pr-2'> {exam.examCode}</p>
+                    <p className='font-semibold text-gray-500 text-sm bg-gray-200 flex justify-center items-center rounded pl-2 pr-2'>{exam.duration} minutes</p>
+                    {exam.startTime && exam.endTime ? (
+                      <div className="flex flex-col bg-yellow-100 text-yellow-800 rounded px-2 py-1 text-sm font-semibold">
+                        <span>Scheduled</span>
+                        <span>{new Date(exam.startTime).toLocaleString()} - {new Date(exam.endTime).toLocaleString()}</span>
+                      </div>
+                    ) : (
+                      <p className='font-semibold text-gray-500 text-sm bg-gray-200 flex justify-center items-center rounded pl-2 pr-2'>
+                        {exam.status || "Status Not Set"}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="space-x-2">
@@ -201,7 +215,7 @@ function ManageExam() {
                         className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600"
                         disabled={deleteLoading}
                         onClick={() => {
-                          handleDelete(exam.id, Number(localStorage.getItem('adminId')));
+                          handleDelete(exam.id);
                         }}
                       >
                         {deleteLoading ? "Deleting..." : "Delete"}

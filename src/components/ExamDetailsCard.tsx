@@ -3,6 +3,9 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useParams } from "next/navigation";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 interface QuestionOption {
   id: number;
@@ -68,16 +71,16 @@ const ExamDetailsCard: React.FC<QuestionCardProps> = ({ questions, fetchExamQues
       });
 
       if(response.data.status == false) {
-        alert(response.data.message);
+        toast.error(response.data.message);
       } else {
-        alert(response.data.message);
+        toast.success(response.data.message);
         window.location.reload()
       }
     } catch (err: any) {
       if (err.response?.status === 409) {
-        setError("This question is already added to the exam.");
+        toast.error("This question is already added to the exam.");
       } else {
-        setError("An error occurred while adding the question.");
+        toast.error("An error occurred while adding the question.");
       }
     } finally {
       // Reset the loading state for the specific question
