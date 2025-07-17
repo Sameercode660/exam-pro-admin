@@ -6,7 +6,14 @@ import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';
 import { Loader2 } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
-import "react-toastify/dist/ReactToastify.css";
+import 'react-toastify/dist/ReactToastify.css';
+
+// Utility to convert ISO to local datetime-local value
+const toLocalDatetimeInputValue = (dateString: string) => {
+  const date = new Date(dateString);
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return localDate.toISOString().slice(0, 16);
+};
 
 const UpdateExam: React.FC = () => {
   const { examId } = useParams();
@@ -41,13 +48,14 @@ const UpdateExam: React.FC = () => {
 
         if (res.data.status) {
           const exam = res.data.response;
+
           setTitle(exam.title);
           setDescription(exam.description);
           setExamCode(exam.examCode);
           setDuration(exam.duration.toString());
           setStatus(exam.status);
-          setStartTime(exam.startTime ? new Date(exam.startTime).toISOString().slice(0, 16) : '');
-          setEndTime(exam.endTime ? new Date(exam.endTime).toISOString().slice(0, 16) : '');
+          setStartTime(exam.startTime ? toLocalDatetimeInputValue(exam.startTime) : '');
+          setEndTime(exam.endTime ? toLocalDatetimeInputValue(exam.endTime) : '');
 
           initialStateRef.current = {
             title: exam.title,
@@ -55,8 +63,8 @@ const UpdateExam: React.FC = () => {
             examCode: exam.examCode,
             duration: exam.duration.toString(),
             status: exam.status,
-            startTime: exam.startTime ? new Date(exam.startTime).toISOString().slice(0, 16) : '',
-            endTime: exam.endTime ? new Date(exam.endTime).toISOString().slice(0, 16) : '',
+            startTime: exam.startTime ? toLocalDatetimeInputValue(exam.startTime) : '',
+            endTime: exam.endTime ? toLocalDatetimeInputValue(exam.endTime) : '',
           };
 
           setIsInitialDataLoaded(true);
@@ -70,6 +78,16 @@ const UpdateExam: React.FC = () => {
 
     fetchExam();
   }, [examId, adminId]);
+
+  // Handle auto calculation of end time if Scheduled
+  useEffect(() => {
+    if (status === 'Scheduled' && startTime && duration) {
+      const start = new Date(startTime);
+      const calculatedEnd = new Date(start.getTime() + Number(duration) * 60000);
+      const localEnd = new Date(calculatedEnd.getTime() - calculatedEnd.getTimezoneOffset() * 60000);
+      setEndTime(localEnd.toISOString().slice(0, 16));
+    }
+  }, [status, startTime, duration]);
 
   useEffect(() => {
     if (!isInitialDataLoaded) return;
@@ -219,6 +237,7 @@ const UpdateExam: React.FC = () => {
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled
                 required
               />
             </div>
@@ -238,7 +257,7 @@ const UpdateExam: React.FC = () => {
           {loading ? 'Updating...' : 'Update Exam'}
         </button>
       </form>
-      <ToastContainer position='top-center'></ToastContainer>
+      <ToastContainer position="top-center" />
     </div>
   );
 };

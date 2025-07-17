@@ -12,7 +12,7 @@ function CreateExam() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [examCode, setExamCode] = useState('');
-  const [duration, setDuration] = useState(''); // Only used when not scheduled
+  const [duration, setDuration] = useState(''); // Used in both scheduled and non-scheduled
   const [status, setStatus] = useState('Active');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -30,6 +30,20 @@ function CreateExam() {
     setMinDateTime(getCurrentDateTime());
   }, []);
 
+ useEffect(() => {
+  if (scheduleMode && startTime && duration) {
+    const start = new Date(startTime);
+    const end = new Date(start.getTime() + Number(duration) * 60000);
+
+    // Converting to local datetime-local format (yyyy-MM-ddTHH:mm)
+    const localEnd = new Date(end.getTime() - end.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 16);
+
+    setEndTime(localEnd);
+  }
+}, [scheduleMode, startTime, duration]);
+
   const generateExamCode = () => {
     const randomCode = `EX-${Math.floor(100000 + Math.random() * 900000)}`;
     setExamCode(randomCode);
@@ -45,14 +59,6 @@ function CreateExam() {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
-  const calculateDuration = () => {
-    const start = new Date(startTime);
-    const end = new Date(endTime);
-    const diffMs = end.getTime() - start.getTime();
-    const diffMins = Math.floor(diffMs / 60000); // Convert ms to minutes
-    return diffMins;
-  };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -63,16 +69,16 @@ function CreateExam() {
         title,
         description,
         examCode,
-        duration: scheduleMode ? calculateDuration() : Number(duration),
+        duration: Number(duration),
         status: scheduleMode ? 'Scheduled' : status,
         startTime: scheduleMode && startTime ? startTime : null,
         endTime: scheduleMode && endTime ? endTime : null,
         createdByAdminId: adminId,
       };
 
-      console.log(payload)
       const response = await axios.post('http://localhost:3000/api/exams/create-exam', payload);
       console.log(response.data)
+
       toast.success('Exam created successfully');
       router.push('/home/exams/manage-exams');
     } catch (err: any) {
@@ -110,19 +116,17 @@ function CreateExam() {
         </div>
 
         <div className='flex justify-between w-full gap-3'>
-          {!scheduleMode && (
-            <div className='w-[50%]'>
-              <label className="block text-sm font-semibold text-gray-600 mb-1">Duration (minutes)</label>
-              <input
-                type="number"
-                min={1}
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                className="w-full px-4 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-400"
-                required
-              />
-            </div>
-          )}
+          <div className='w-[50%]'>
+            <label className="block text-sm font-semibold text-gray-600 mb-1">Duration (minutes)</label>
+            <input
+              type="number"
+              min={1}
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+              className="w-full px-4 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-400"
+              required
+            />
+          </div>
 
           {!scheduleMode && (
             <div className='w-[50%]'>
@@ -138,8 +142,8 @@ function CreateExam() {
               </select>
             </div>
           )}
-
         </div>
+
         <div className="flex items-center space-x-3">
           <input
             type="checkbox"
@@ -161,25 +165,13 @@ function CreateExam() {
                 onChange={(e) => setStartTime(e.target.value)}
                 min={minDateTime}
                 className="w-full px-4 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-400"
-                required={scheduleMode}
+                required
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-1">End Time</label>
-              <input
-                type="datetime-local"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                min={startTime || minDateTime}
-                className="w-full px-4 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-400"
-                required={scheduleMode}
-              />
-            </div>
-
-            {startTime && endTime && (
+            {startTime && duration && (
               <div className="md:col-span-2 text-gray-600 text-sm">
-                <strong>Auto Duration:</strong> {calculateDuration()} minutes
+                <strong>Auto End Time:</strong> {endTime.replace('T', ' ')}
               </div>
             )}
           </div>
@@ -194,7 +186,7 @@ function CreateExam() {
           {loading ? 'Creating...' : 'Create Exam'}
         </button>
       </form>
-      <ToastContainer></ToastContainer>
+      <ToastContainer />
     </div>
   );
 }

@@ -172,11 +172,13 @@ const GroupManagement = () => {
         participantIds: selected,
       });
 
+      console.log(res.data)
+
       const { addedCount, skippedParticipants } = res.data;
 
       if (addedCount > 0) toast.success(`${addedCount} participant(s) added to the group successfully!`);
       if (skippedParticipants.length > 0) {
-        const names = skippedParticipants.map((p: any) => p.name).join(", ");
+        const names = skippedParticipants.map((p: string) => p).join(", ");
         toast.info(`${names} ${skippedParticipants.length > 1 ? "are" : "is"} already in the group.`);
       }
 
