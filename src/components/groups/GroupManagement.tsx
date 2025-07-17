@@ -8,6 +8,7 @@ import { FiPlus, FiTrash2 } from 'react-icons/fi';
 import { useAuth } from '@/context/AuthContext';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import ExamListModal from './ExamListModal';
 
 interface Group {
   id: number;
@@ -27,7 +28,7 @@ interface Participant {
 const GroupManagement = () => {
 
   const { user } = useAuth();
-  const organizationId = user?.organizationId; 
+  const organizationId = user?.organizationId;
   const adminId = user?.id;
 
   const { groupId } = useParams();
@@ -43,6 +44,44 @@ const GroupManagement = () => {
   const [filter, setFilter] = useState<"all" | "my">("all");
 
   const [groupParticipants, setGroupParticipants] = useState<any[]>([]); // Active participants in the group
+
+  // remove participant
+  const [removedParticipants, setRemovedParticipants] = useState<Participant[]>([]);
+  const [isRemovedOpen, setIsRemovedOpen] = useState(false);
+  const [isExamModalOpen, setIsExamModalOpen] = useState(false);
+
+
+  // fetch remove participants
+  const fetchRemovedParticipants = async () => {
+    try {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/groups/removed-participants`, {
+        groupId: Number(groupId),
+      });
+
+      setRemovedParticipants(res.data.participants);
+      setIsRemovedOpen(true);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.response?.data?.error || 'Failed to fetch removed participants');
+    }
+  };
+
+  // restore participants
+  const handleRestoreParticipant = async (participantId: number) => {
+    try {
+      await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/groups/restore-participant`, {
+        groupId: Number(groupId),
+        participantId,
+      });
+
+      toast.success("Participant restored to group.");
+      fetchGroupParticipants(); // Refresh active participants
+      fetchRemovedParticipants(); // Refresh removed list
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.response?.data?.error || 'Failed to restore participant');
+    }
+  };
 
   // Fetch group participants (active + visible)
   const fetchGroupParticipants = async () => {
@@ -241,6 +280,9 @@ const GroupManagement = () => {
               <button onClick={() => setIsAddParticipantOpen(true)} className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2">
                 <FiPlus /> Manage Participants
               </button>
+              <button onClick={() => setIsExamModalOpen(true)} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                <FiPlus /> Manage Exams
+              </button>
             </div>
 
           </div>
@@ -308,6 +350,12 @@ const GroupManagement = () => {
 
             <div className="mt-6">
               <h3 className="font-bold mb-2">Current Group Participants</h3>
+              <button
+                onClick={fetchRemovedParticipants}
+                className="text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+              >
+                Removed Participants
+              </button>
               <div className="space-y-2">
                 {groupParticipants.length === 0 ? (
                   <div className="text-center text-gray-400">No participants in this group.</div>
@@ -327,6 +375,45 @@ const GroupManagement = () => {
           </Dialog.Panel>
         </div>
       </Dialog>
+      {/* removed participant modal  */}
+      <Dialog open={isRemovedOpen} onClose={() => setIsRemovedOpen(false)} className="relative z-50">
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4">
+          <Dialog.Panel className="bg-white rounded-xl shadow-lg max-w-md w-full p-6">
+            <Dialog.Title className="text-lg font-bold mb-4">Removed Participants</Dialog.Title>
+
+            {removedParticipants.length === 0 ? (
+              <div className="text-center text-gray-400">No removed participants.</div>
+            ) : (
+              <div className="space-y-3">
+                {removedParticipants.map(p => (
+                  <div key={p.id} className="flex justify-between items-center bg-gray-100 p-2 rounded">
+                    <span>{p.name}</span>
+                    <button
+                      onClick={() => handleRestoreParticipant(p.id)}
+                      className="text-green-600 hover:text-green-800 text-sm"
+                    >
+                      Restore
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-4 flex justify-end">
+              <button onClick={() => setIsRemovedOpen(false)} className="px-4 py-2 bg-gray-200 rounded">Close</button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+      {/* exam modal list  */}
+      <ExamListModal
+        isOpen={isExamModalOpen}
+        onClose={() => setIsExamModalOpen(false)}
+        organizationId={organizationId || 0}
+        adminId={adminId || 0}
+        groupId={ Number(groupId)}
+      />
+
 
       <ToastContainer position='top-center' />
     </div>
