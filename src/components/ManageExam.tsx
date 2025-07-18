@@ -150,18 +150,18 @@ function ManageExam() {
                 className="border p-4 rounded-lg shadow-md bg-white flex justify-between items-center"
               >
                 <div className='flex flex-col space-y-1.5'>
-                  <h2 className="text-lg font-semibold">{exam.title.toUpperCase()}</h2>
+                  <h2 className="text-lg font-semibold text-blue-400 underline cursor-pointer" onClick={() => router.push(`/home/exams/exam-details/${exam.id}`)}>{exam.title.toUpperCase()}</h2>
                   <p className='font-semibold text-gray-500'>{exam.description}</p>
                   <div className='flex space-x-5'>
                     <p className='font-semibold text-gray-500 text-sm bg-gray-200 flex justify-center items-center rounded pl-2 pr-2'> {exam.examCode}</p>
                     <p className='font-semibold text-gray-500 text-sm bg-gray-200 flex justify-center items-center rounded pl-2 pr-2'>{exam.duration} minutes</p>
                     {exam.startTime && exam.endTime ? (
-                      <div className="flex flex-col bg-yellow-100 text-yellow-800 rounded px-2 py-1 text-sm font-semibold">
+                      <div className="flex flex-col bg-green-200 text-yellow-800 rounded px-2 py-1 text-sm font-semibold">
                         <span>Scheduled</span>
                         <span>{new Date(exam.startTime).toLocaleString()} - {new Date(exam.endTime).toLocaleString()}</span>
                       </div>
                     ) : (
-                      <p className='font-semibold text-gray-500 text-sm bg-gray-200 flex justify-center items-center rounded pl-2 pr-2'>
+                      <p className={`font-semibold text-gray-500 text-sm ${exam.status == "Active" ? 'bg-green-500' : exam.status == "Inactive" ? 'bg-yellow-200' : 'bg-blue-200'} flex justify-center items-center rounded pl-2 pr-2`}>
                         {exam.status || "Status Not Set"}
                       </p>
                     )}
@@ -188,12 +188,13 @@ function ManageExam() {
                   >
                     Add Question
                   </button>
-                  <button
+                  {/* (commented on 18/07/2025 -> applied same feature to title) */}
+                  {/* <button
                     className="bg-sky-400 text-white px-4 py-2 rounded hover:bg-green-600"
                     onClick={() => router.push(`/home/exams/exam-details/${exam.id}`)}
                   >
                     View
-                  </button>
+                  // </button> */}
                 </div>
               </div>
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 import { Dialog } from '@headlessui/react';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
@@ -23,6 +23,7 @@ interface Participant {
   id: number;
   name: string;
   email: string;
+  status: 'added' | 'removed' | 'not_added';
 }
 
 const GroupManagement = () => {
@@ -73,15 +74,23 @@ const GroupManagement = () => {
         groupId: Number(groupId),
         participantId,
       });
+      toast.success('Participant restored.');
 
-      toast.success("Participant restored to group.");
-      fetchGroupParticipants(); // Refresh active participants
-      fetchRemovedParticipants(); // Refresh removed list
+      // ✅ Update participants list to mark as 'not_added' again or your desired status
+      setParticipants(prev =>
+        prev.map(p =>
+          p.id === participantId ? { ...p, status: 'not_added' } : p
+        )
+      );
+
+      fetchGroupParticipants();
+      fetchRemovedParticipants();
+      fetchParticipants()
     } catch (err: any) {
-      console.error(err);
-      toast.error(err.response?.data?.error || 'Failed to restore participant');
+      toast.error(err.response?.data?.error || 'Restore failed.');
     }
   };
+
 
   // Fetch group participants (active + visible)
   const fetchGroupParticipants = async () => {
@@ -104,14 +113,21 @@ const GroupManagement = () => {
         groupId: Number(groupId),
         participantId,
       });
+      toast.success('Participant removed.');
 
-      toast.success("Participant removed from group.");
-      fetchGroupParticipants(); // Refresh group participants list
+      setGroupParticipants(prev => prev.filter(p => p.user.id !== participantId));
+
+      // ✅ Update local participants list to mark as removed
+      setParticipants(prev =>
+        prev.map(p =>
+          p.id === participantId ? { ...p, status: 'removed' } : p
+        )
+      );
     } catch (err: any) {
-      console.error(err);
-      toast.error(err.response?.data?.error || 'Failed to remove participant');
+      toast.error(err.response?.data?.error || 'Remove failed.');
     }
   };
+
 
   useEffect(() => {
     if (isAddParticipantOpen) {
@@ -183,53 +199,62 @@ const GroupManagement = () => {
     }
   };
 
-  const fetchParticipants = async () => {
-    try {
-      const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/participants/fetch-all-participant`, {
-        organizationId: organizationId,
-        adminId: adminId,
-        filter: filter,
-        search: search,
-      });
+ 
+const fetchParticipants = useCallback(async (): Promise<void> => {
+  try {
+    const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/groups/fetch-all-participants`, {
+      organizationId,
+      adminId,
+      filter,
+      search,
+      groupId: Number(groupId),
+    });
 
-      setParticipants(res.data.participants);
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err.response?.data?.error || 'Failed to fetch participants');
-    }
-  };
+    setParticipants(res.data.participants);
+  } catch (err: any) {
+    console.error(err);
+    toast.error(err.response?.data?.error || 'Failed to fetch participants');
+  }
+}, [organizationId, adminId, filter, search, groupId]);
 
   const handleAddToGroup = async () => {
-    if (selected.length === 0) {
-      toast.warning("Please select at least one participant.");
+    const validIds = selected.filter(id => {
+      const participant = participants.find(p => p.id === id);
+      return participant && participant.status !== 'added';
+    });
+
+    if (validIds.length === 0) {
+      toast.warning('No valid participants selected.');
       return;
     }
 
     try {
       const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/groups/add-participants`, {
         groupId: Number(groupId),
-        participantIds: selected,
+        participantIds: validIds,
       });
 
-      console.log(res.data)
-
       const { addedCount, skippedParticipants } = res.data;
-
-      if (addedCount > 0) toast.success(`${addedCount} participant(s) added to the group successfully!`);
+      if (addedCount > 0) toast.success(`${addedCount} participant(s) added successfully.`);
       if (skippedParticipants.length > 0) {
-        const names = skippedParticipants.map((p: string) => p).join(", ");
-        toast.info(`${names} ${skippedParticipants.length > 1 ? "are" : "is"} already in the group.`);
+        toast.info(`${skippedParticipants.join(', ')} already in the group.`);
       }
+
+      // ✅ Update local participant statuses
+      setParticipants(prev =>
+        prev.map(p =>
+          validIds.includes(p.id) ? { ...p, status: 'added' } : p
+        )
+      );
 
       setIsAddParticipantOpen(false);
       setSelected([]);
-      fetchGroupParticipants();
-
+      fetchGroupParticipants(); // only need this for groupParticipants not for participants list now
     } catch (err: any) {
-      console.error(err);
-      toast.error(err.response?.data?.error || "Failed to add participants.");
+      toast.error(err.response?.data?.error || 'Failed to add participants.');
     }
   };
+
 
   const filteredParticipants = participants.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase())
@@ -324,9 +349,19 @@ const GroupManagement = () => {
               ) : (
                 filteredParticipants.map((p) => (
                   <div key={p.id} className="flex justify-between items-center bg-white p-2 rounded hover:bg-gray-100">
-                    <span>{p.name}</span>
+                    <div>
+                      <span className="font-medium">{p.name}</span>
+                      <span className={`ml-2 text-xs px-2 py-1 rounded ${p.status === 'added' ? 'bg-green-100 text-green-700' :
+                        p.status === 'removed' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                        {p.status}
+                      </span>
+                    </div>
+
                     <input
                       type="checkbox"
+                      disabled={p.status === 'added'}
                       checked={selected.includes(p.id)}
                       onChange={() => {
                         setSelected(prev =>
@@ -340,6 +375,7 @@ const GroupManagement = () => {
                 ))
               )}
             </div>
+
 
             <div className="mt-4 flex justify-end gap-4">
               <button onClick={() => setIsAddParticipantOpen(false)} className="px-4 py-2 rounded bg-gray-200">Cancel</button>
@@ -411,7 +447,7 @@ const GroupManagement = () => {
         onClose={() => setIsExamModalOpen(false)}
         organizationId={organizationId || 0}
         adminId={adminId || 0}
-        groupId={ Number(groupId)}
+        groupId={Number(groupId)}
       />
 
 
