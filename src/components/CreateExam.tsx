@@ -30,19 +30,19 @@ function CreateExam() {
     setMinDateTime(getCurrentDateTime());
   }, []);
 
- useEffect(() => {
-  if (scheduleMode && startTime && duration) {
-    const start = new Date(startTime);
-    const end = new Date(start.getTime() + Number(duration) * 60000);
+  useEffect(() => {
+    if (scheduleMode && startTime && duration) {
+      const start = new Date(startTime);
+      const end = new Date(start.getTime() + Number(duration) * 60000);
 
-    // Converting to local datetime-local format (yyyy-MM-ddTHH:mm)
-    const localEnd = new Date(end.getTime() - end.getTimezoneOffset() * 60000)
-      .toISOString()
-      .slice(0, 16);
+      // Converting to local datetime-local format (yyyy-MM-ddTHH:mm)
+      const localEnd = new Date(end.getTime() - end.getTimezoneOffset() * 60000)
+        .toISOString()
+        .slice(0, 16);
 
-    setEndTime(localEnd);
-  }
-}, [scheduleMode, startTime, duration]);
+      setEndTime(localEnd);
+    }
+  }, [scheduleMode, startTime, duration]);
 
   const generateExamCode = () => {
     const randomCode = `EX-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -78,6 +78,15 @@ function CreateExam() {
 
       const response = await axios.post('http://localhost:3000/api/exams/create-exam', payload);
       console.log(response.data)
+
+
+      await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/participants/my-group/exam/schedule-activation`, {
+        examId: response.data.response.id,
+        startTime: response.data.response.startTime,
+        endTime: response.data.response.endTime
+      });
+
+
 
       toast.success('Exam created successfully');
       router.push('/home/exams/manage-exams');
