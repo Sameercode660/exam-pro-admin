@@ -80,11 +80,19 @@ function CreateExam() {
       console.log(response.data)
 
 
-      await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/participants/my-group/exam/schedule-activation`, {
-        examId: response.data.response.id,
-        startTime: response.data.response.startTime,
-        endTime: response.data.response.endTime
-      });
+
+      if (response.data.response.status == "Scheduled") {
+        await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/participants/my-group/exam/schedule-activation`, {
+          examId: response.data.response.id,
+          startTime: response.data.response.startTime,
+          endTime: response.data.response.endTime
+        });
+      } else if(response.data.response.status == "Active") {
+        await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/participants/my-group/exam/active-exam-schedule-activation`, {
+          examId: response.data.response.id,
+          endTime: response.data.response.endTime
+        });
+      }
 
 
 

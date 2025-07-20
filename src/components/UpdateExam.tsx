@@ -137,6 +137,19 @@ const UpdateExam: React.FC = () => {
         throw new Error(res.data.message);
       }
 
+       if (res.data.response.status == "Scheduled") {
+        await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/participants/my-group/exam/schedule-activation`, {
+          examId: res.data.response.id,
+          startTime: res.data.response.startTime,
+          endTime: res.data.response.endTime
+        });
+      } else if(res.data.response.status == "Active") {
+        await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/participants/my-group/exam/active-exam-schedule-activation`, {
+          examId: res.data.response.id,
+          endTime: res.data.response.endTime
+        });
+      }
+
       toast.success('Exam updated successfully');
       router.push('/home/exams/manage-exams');
     } catch (err: any) {
