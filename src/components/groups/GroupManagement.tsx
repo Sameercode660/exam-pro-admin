@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ExamListModal from './ExamListModal';
+import { useSocket } from '@/context/SocketContext';
 
 interface Group {
   id: number;
@@ -51,6 +52,9 @@ const GroupManagement = () => {
   const [isRemovedOpen, setIsRemovedOpen] = useState(false);
   const [isExamModalOpen, setIsExamModalOpen] = useState(false);
 
+  // socket
+  const socket = useSocket();
+
 
   // fetch remove participants
   const fetchRemovedParticipants = async () => {
@@ -74,6 +78,8 @@ const GroupManagement = () => {
         groupId: Number(groupId),
         participantId,
       });
+      // socket ent 
+      socket?.emit('remove-participant-admin', 'restored')
       toast.success('Participant restored.');
 
       // ✅ Update participants list to mark as 'not_added' again or your desired status
@@ -113,6 +119,9 @@ const GroupManagement = () => {
         groupId: Number(groupId),
         participantId,
       });
+
+      // socket event 
+      socket?.emit('remove-participant-admin', 'removed')
       toast.success('Participant removed.');
 
       setGroupParticipants(prev => prev.filter(p => p.user.id !== participantId));
@@ -183,6 +192,9 @@ const GroupManagement = () => {
 
       const { addedNames, alreadyInGroupNames, unmatchedEmails } = res.data;
 
+      // socket event 
+      socket?.emit('add-participant-admin', 'added')
+
       if (addedNames.length > 0) toast.success(`Added: ${addedNames.join(", ")}`);
       if (alreadyInGroupNames.length > 0) toast.info(`Already in group: ${alreadyInGroupNames.join(", ")}`);
       if (unmatchedEmails.length > 0) toast.warning(`Not found in organization: ${unmatchedEmails.join(", ")}`);
@@ -199,23 +211,23 @@ const GroupManagement = () => {
     }
   };
 
- 
-const fetchParticipants = useCallback(async (): Promise<void> => {
-  try {
-    const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/groups/fetch-all-participants`, {
-      organizationId,
-      adminId,
-      filter,
-      search,
-      groupId: Number(groupId),
-    });
 
-    setParticipants(res.data.participants);
-  } catch (err: any) {
-    console.error(err);
-    toast.error(err.response?.data?.error || 'Failed to fetch participants');
-  }
-}, [organizationId, adminId, filter, search, groupId]);
+  const fetchParticipants = useCallback(async (): Promise<void> => {
+    try {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/groups/fetch-all-participants`, {
+        organizationId,
+        adminId,
+        filter,
+        search,
+        groupId: Number(groupId),
+      });
+
+      setParticipants(res.data.participants);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.response?.data?.error || 'Failed to fetch participants');
+    }
+  }, [organizationId, adminId, filter, search, groupId]);
 
   const handleAddToGroup = async () => {
     const validIds = selected.filter(id => {
@@ -234,6 +246,9 @@ const fetchParticipants = useCallback(async (): Promise<void> => {
         participantIds: validIds,
       });
 
+      // socket event 
+      
+      socket?.emit('add-participant-admin', 'added')
       const { addedCount, skippedParticipants } = res.data;
       if (addedCount > 0) toast.success(`${addedCount} participant(s) added successfully.`);
       if (skippedParticipants.length > 0) {

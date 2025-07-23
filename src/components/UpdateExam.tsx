@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Loader2 } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useSocket } from '@/context/SocketContext';
 
 // Utility to convert ISO to local datetime-local value
 const toLocalDatetimeInputValue = (dateString: string) => {
@@ -33,6 +34,9 @@ const UpdateExam: React.FC = () => {
   const [isInitialDataLoaded, setIsInitialDataLoaded] = useState(false);
 
   const initialStateRef = useRef<any>({});
+
+  // socket
+  const socket = useSocket();
 
   const adminId = user?.id;
 
@@ -148,8 +152,10 @@ const UpdateExam: React.FC = () => {
           examId: res.data.response.id,
           endTime: res.data.response.endTime
         });
-      }
+      } 
 
+      // socket event 
+      socket?.emit('update-exam-status-admin', 'status-updated')
       toast.success('Exam updated successfully');
       router.push('/home/exams/manage-exams');
     } catch (err: any) {

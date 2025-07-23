@@ -7,6 +7,7 @@ import { FiX, FiRefreshCw, FiSearch, FiPlusCircle, FiRotateCw } from 'react-icon
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import RemovedExamsModal from './RemovedExamsModal';
+import { useSocket } from '@/context/SocketContext';
 
 interface Exam {
     id: number;
@@ -41,6 +42,7 @@ const ExamListModal: React.FC<ExamListModalProps> = ({
     const [isRemovedModalOpen, setIsRemovedModalOpen] = useState(false);
     const [addedExamIds, setAddedExamIds] = useState<Set<number>>(new Set());
     const [removedExamIds, setRemovedExamIds] = useState<Set<number>>(new Set());
+    const socket = useSocket();
 
     const fetchExams = async () => {
         setLoading(true);
@@ -112,6 +114,7 @@ const ExamListModal: React.FC<ExamListModalProps> = ({
             const { message, success, alreadyAssigned, recoverRequired } = res.data;
 
             if (success) {
+                socket?.emit('exam-added-admin', 'added')
                 toast.success(message);
                 fetchTotalAdded();
                 fetchAddedExams();
@@ -138,6 +141,7 @@ const ExamListModal: React.FC<ExamListModalProps> = ({
             });
 
             if (res.data.success) {
+                socket?.emit('remove-exam-admin', 'remove');
                 toast.success(res.data.message);
                 fetchTotalAdded();
                 fetchAddedExams();

@@ -155,13 +155,21 @@ function ManageExam() {
                   <div className='flex space-x-5'>
                     <p className='font-semibold text-gray-500 text-sm bg-gray-200 flex justify-center items-center rounded pl-2 pr-2'> {exam.examCode}</p>
                     <p className='font-semibold text-gray-500 text-sm bg-gray-200 flex justify-center items-center rounded pl-2 pr-2'>{exam.duration} minutes</p>
-                    {exam.startTime && exam.endTime ? (
+                    {exam.status == "Scheduled" ? (
                       <div className="flex flex-col bg-green-200 text-yellow-800 rounded px-2 py-1 text-sm font-semibold">
                         <span>Scheduled</span>
                         <span>{new Date(exam.startTime).toLocaleString()} - {new Date(exam.endTime).toLocaleString()}</span>
                       </div>
                     ) : (
-                      <p className={`font-semibold text-gray-500 text-sm ${exam.status == "Active" ? 'bg-green-500' : exam.status == "Inactive" ? 'bg-yellow-200' : 'bg-blue-200'} flex justify-center items-center rounded pl-2 pr-2`}>
+                      <p
+                        className={`font-semibold text-sm flex justify-center items-center rounded px-2
+    ${exam.status === "Active" ? 'bg-green-100 text-green-800' :
+                            exam.status === "Inactive" ? 'bg-gray-200 text-gray-700' :
+                              exam.status === "Scheduled" ? 'bg-yellow-100 text-yellow-800' :
+                                exam.status === "Completed" ? 'bg-green-500 text-white' :
+                                  'bg-blue-200 text-blue-800'}
+  `}
+                      >
                         {exam.status || "Status Not Set"}
                       </p>
                     )}

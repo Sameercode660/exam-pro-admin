@@ -6,6 +6,7 @@ import axios from 'axios';
 import { FiX, FiRotateCw } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useSocket } from '@/context/SocketContext';
 
 interface RemovedExam {
     id: number; // groupExamId
@@ -26,6 +27,8 @@ interface RemovedExamsModalProps {
 const RemovedExamsModal: React.FC<RemovedExamsModalProps> = ({ isOpen, onClose, groupId, fetchAddedExams, fetchAllExams }) => {
     const [removedExams, setRemovedExams] = useState<RemovedExam[]>([]);
     const [loading, setLoading] = useState(false);
+    // socket 
+    const socket = useSocket();
 
     const fetchRemovedExams = async () => {
         setLoading(true);
@@ -50,6 +53,7 @@ const RemovedExamsModal: React.FC<RemovedExamsModalProps> = ({ isOpen, onClose, 
             });
 
             if (res.data.success) {
+                socket?.emit('restore-exam-admin', 'removed')
                 toast.success(res.data.message);
                 fetchRemovedExams();
                 fetchAddedExams();

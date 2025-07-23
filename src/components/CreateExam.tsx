@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+ 
 
 function CreateExam() {
   const [title, setTitle] = useState('');
@@ -24,6 +25,7 @@ function CreateExam() {
   const { user } = useAuth();
   const router = useRouter();
   const adminId = user?.id;
+ 
 
   useEffect(() => {
     generateExamCode();
@@ -95,7 +97,7 @@ function CreateExam() {
       }
 
 
-
+      
       toast.success('Exam created successfully');
       router.push('/home/exams/manage-exams');
     } catch (err: any) {

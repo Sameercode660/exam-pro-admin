@@ -49,6 +49,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_ROOT_URL}/authentication/user-auth`, {
           withCredentials: true,
         });
+
         console.log(res.data)
         setUser(res.data.user);
       } catch (error) {
