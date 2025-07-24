@@ -21,7 +21,7 @@ function AddQuestion() {
   const [option4, setOption4] = useState('');
   const [correctOption, setCorrectOption] = useState('1');
   const [difficultyLevel, setDifficultyLevel] = useState('EASY');
-  const {user} = useAuth();
+  const { user } = useAuth();
   const adminId = user?.id;
   const router = useRouter();
 
@@ -117,7 +117,8 @@ function AddQuestion() {
         <h2 className="text-2xl font-bold text-gray-800">Add Questions</h2>
 
         <a
-          href="https://docs.google.com/spreadsheets/d/1wL7cgUMj9Nbi_sS8RWn_wMLZVyUCqgYy/edit?usp=sharing&ouid=101087189441962310045&rtpof=true&sd=true"
+          href="https://docs.google.com/spreadsheets/d/1wL7cgUMj9Nbi_sS8RWn_wMLZVyUCqgYy/export?format=xlsx"
+          download
           target="_blank"
           rel="noopener noreferrer"
           className="bg-purple-600 text-white px-4 py-2 rounded-xl hover:bg-purple-700 transition text-sm font-semibold"

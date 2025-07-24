@@ -143,7 +143,7 @@ function AdminDashboard({
                         </ul>
                       )}
 
-                      
+
                       <li
                         className="py-2 px-4 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
                         onClick={() => setOpenParticipantMenu(prev => !prev)}
@@ -168,6 +168,15 @@ function AdminDashboard({
                           >
                             Manage Participant
                           </li>
+
+                          {
+                            user?.role == "Admin" ? (<li
+                              className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                              onClick={() => navigation.push('/home/participant-activity')}
+                            >
+                              Participant Activity
+                            </li>) : (<></>)
+                          }
                         </ul>
                       )}
                     </div>

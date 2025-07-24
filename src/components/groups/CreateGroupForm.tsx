@@ -76,12 +76,18 @@ const CreateGroupForm = () => {
         createdById: Number(user?.id),
         organizationId: Number(user?.organizationId),
       });
+      console.log(res.data)
 
+      await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/groups/group-inactivation/group-expiry-cron`, {
+        groupId: res.data.group.id,
+        endDate: res.data.group.endDate
+      })
       setSuccess('Group created successfully!');
       resetForm();
     } catch (err: any) {
       const errMsg = err?.response?.data?.error || 'Failed to create group.';
       setError(errMsg);
+      resetError();
     } finally {
       setLoading(false);
     }
@@ -122,10 +128,10 @@ const CreateGroupForm = () => {
             <label className="block mb-1 text-sm font-medium text-gray-700">Start Date</label>
             <input
               type="date"
+              disabled
               value={startDate}
               min={new Date().toISOString().split('T')[0]} // prevents selecting past dates
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full border px-4 py-2 rounded-md focus:ring focus:ring-blue-200"
+              className="w-full border px-4 py-2 rounded-md focus:ring focus:ring-blue-200 text-gray-400 font-semibold cursor-not-allowed"
               required
             />
           </div>
