@@ -14,8 +14,7 @@ const AddQuestionInExam = () => {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<number | null>(null);
   const [difficulty, setDifficulty] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState(''); // Search term state
-  const {examId} = useParams();
+  const [searchTerm, setSearchTerm] = useState(''); // Searching state
 
   const limit = 10; // Number of questions per page
 
