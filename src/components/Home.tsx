@@ -170,12 +170,20 @@ function AdminDashboard({
                           </li>
 
                           {
-                            user?.role == "Admin" ? (<li
+                            user?.role == "Admin" ? (<>
+                            <li
                               className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
                               onClick={() => navigation.push('/home/participant-activity')}
                             >
                               Participant Activity
-                            </li>) : (<></>)
+                            </li>
+                            <li
+                              className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                              onClick={() => navigation.push('/home/removed-data/removed-participants')}
+                            >
+                              Removed Participant
+                            </li>
+                            </>) : (<></>)
                           }
                         </ul>
                       )}
