@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import moment from "moment";
+import { useRouter } from "next/navigation";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -15,6 +16,30 @@ const Dashboard = () => {
   const [unapprovedParticipants, setUnapprovedParticipants] = useState<any[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState(false);
+
+  const router = useRouter();
+
+  const [orgStats, setOrgStats] = useState({
+    totalSuperUsers: 0,
+    totalParticipants: 0,
+    totalExams: 0,
+    totalQuestions: 0,
+    activeExams: 0,
+    inactiveExams: 0,
+  });
+
+  const fetchOrganizationStats = async () => {
+    try {
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_ROOT_URL}/admin/dashboard-data`,
+        { organizationId }
+      );
+      console.log(res.data)
+      setOrgStats(res.data);
+    } catch (err: any) {
+      toast.error("Failed to fetch organization stats");
+    }
+  };
 
   const fetchUnapprovedParticipants = async () => {
     try {
@@ -30,6 +55,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchUnapprovedParticipants();
+    fetchOrganizationStats()
   }, []);
 
   const handleSelectAll = () => {
@@ -76,12 +102,28 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Section 1: Quick Stats */}
         <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-md grid grid-cols-2 md:grid-cols-3 gap-4">
-          <StatCard title="Super Users" value={24} />
-          <StatCard title="Participants" value={120} />
-          <StatCard title="Exams" value={12} />
-          <StatCard title="Questions" value={456} />
-          <StatCard title="Active Exams" value={8} />
-          <StatCard title="Inactive Exams" value={4} />
+          {/* <StatCard title="Super Users" onclick={() => {
+            router.push('/home/admin/totat-super-user')
+          }} value={orgStats.totalSuperUsers} /> */}
+          <StatCard title="Participants" onclick={() => {
+            router.push('/home/participant/manage-participant')
+          }} value={orgStats.totalParticipants} />
+          <StatCard title="Exams" onclick={() => {
+            router.push('/home/exams/manage-exams')
+          }} value={orgStats.totalExams} />
+          <StatCard title="Questions" onclick={() => {
+            router.push('/home/questions/manage-questions')
+          }} value={orgStats.totalQuestions} />
+          <StatCard title="Active Exams"
+            onclick={() => {
+              router.push('/home/admin/total-active-exams')
+            }}
+            value={orgStats.activeExams} />
+          <StatCard title="Inactive Exams"
+            onclick={() => {
+              router.push('/home/admin/total-inactive-exams')
+            }}
+            value={orgStats.inactiveExams} />
         </div>
 
         {/* Section 2: Reports */}
@@ -166,11 +208,12 @@ const Dashboard = () => {
   );
 };
 
-const StatCard = ({ title, value }: { title: string; value: number }) => (
-  <div className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl p-4 text-center shadow-sm">
+const StatCard = ({ title, value, onclick }: { title: string; value: number; onclick?: () => void }) => (
+  <div className="bg-white text-blue-500 rounded-xl p-4 text-center shadow-sm cursor-pointer" onClick={onclick}>
     <h3 className="text-sm font-medium">{title}</h3>
     <p className="text-2xl font-bold mt-1">{value}</p>
   </div>
 );
+
 
 export default Dashboard;

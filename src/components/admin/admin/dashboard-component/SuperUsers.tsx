@@ -16,6 +16,7 @@ export default function SuperUsers() {
         organizationId: user?.organizationId,
       })
       .then((res) => {
+        console.log(res.data?.data)
         setSuperUsers(res.data?.data || []);
       })
       .catch((err) => {
@@ -43,6 +44,8 @@ export default function SuperUsers() {
             <th className="px-4 py-3 text-left">Name</th>
             <th className="px-4 py-3 text-left">Email</th>
             <th className="px-4 py-3 text-left">Role</th>
+            <th className="px-4 py-3 text-left">CreatedAt</th>
+            <th className="px-4 py-3 text-left">CreatedBy</th>
           </tr>
         </thead>
         <tbody className="bg-white">
@@ -51,6 +54,8 @@ export default function SuperUsers() {
               <td className="px-4 py-2">{user.name}</td>
               <td className="px-4 py-2">{user.email}</td>
               <td className="px-4 py-2">{"SuperUser"}</td>
+              <td className="px-4 py-2">{new Date(user.createdAt).toLocaleString()}</td>
+              <td className="px-4 py-2">{user.createdBy?.name ? user.createdBy.name : 'self'}</td>
             </tr>
           ))}
           {filtered.length === 0 && (

@@ -114,8 +114,16 @@ const Dashboard = () => {
           <StatCard title="Questions" onclick={() => {
             router.push('/home/questions/manage-questions')
           }} value={orgStats.totalQuestions} />
-          <StatCard title="Active Exams" value={orgStats.activeExams} />
-          <StatCard title="Inactive Exams" value={orgStats.inactiveExams} />
+          <StatCard title="Active Exams" 
+          onclick={() => {
+            router.push('/home/admin/total-active-exams')
+          }}
+          value={orgStats.activeExams} />
+          <StatCard title="Inactive Exams" 
+           onclick={() => {
+            router.push('/home/admin/total-inactive-exams')
+          }}
+          value={orgStats.inactiveExams} />
         </div>
 
         {/* Section 2: Reports */}
