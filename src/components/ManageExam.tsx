@@ -90,10 +90,6 @@ function ManageExam() {
 
       setDeleteLoading(false);
       setOpenDeletePopup(false);
-      if (response.data.status == false) {
-        alert(response.data.message);
-        return
-      }
       fetchExams();
     } catch (error) {
       if (error instanceof Error) {

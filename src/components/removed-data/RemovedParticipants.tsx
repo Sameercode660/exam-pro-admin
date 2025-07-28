@@ -10,6 +10,7 @@ type RemovedParticipant = {
   name: string;
   mobileNumber: string;
   createdAt: string;
+  removedAt: string;
   createdBy: string;
   removedBy: string | null;
 };
@@ -24,6 +25,7 @@ export default function RemovedParticipants() {
         `${process.env.NEXT_PUBLIC_ROOT_URL}/removed-data/removed-participants/fetch-removed-participants`,
         { organizationId: user?.id }
       );
+      console.log(res.data.data)
       setParticipants(res.data.data);
     } catch (err) {
       console.error("Failed to fetch participants:", err);
@@ -38,7 +40,7 @@ export default function RemovedParticipants() {
     try {
       await axios.post(
         `${process.env.NEXT_PUBLIC_ROOT_URL}/removed-data/removed-participants/restore-removed-participants`,
-        { participantId }
+        { participantId, adminId: user?.id }
       );
       fetchParticipants();
     } catch (err) {
@@ -50,6 +52,7 @@ export default function RemovedParticipants() {
     "Name",
     "Mobile Number",
     "Created At",
+    "Removed At",
     "Created By",
     "Removed By",
     "Action",
@@ -59,9 +62,10 @@ export default function RemovedParticipants() {
     "Name": p.name,
     "Mobile Number": p.mobileNumber,
     "Created At": new Date(p.createdAt).toLocaleString(),
+    "Removed At": new Date(p.removedAt).toLocaleString(),
     "Created By": p.createdBy,
     "Removed By": p.removedBy || "-",
-    "Action": p.id, // will use this for custom restore button
+    "Action": p.id, 
   }));
 
   return (

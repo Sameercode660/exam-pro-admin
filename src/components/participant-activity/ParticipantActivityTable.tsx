@@ -73,7 +73,7 @@ export default function ParticipantActivityTable() {
                   {format(new Date(activity.loginTime), "dd/MM/yyyy hh:mm a")}
                 </td>
                 <td className="px-4 py-2">
-                  {activity.logoutTime
+                  {activity.logoutTime != activity.loginTime
                     ? format(new Date(activity.logoutTime), "dd/MM/yyyy hh:mm a")
                     : "-"}
                 </td>
@@ -93,7 +93,7 @@ export default function ParticipantActivityTable() {
                       return parts.join(" ");
                     })()
                   ) : (
-                    "-"
+                    "Online"
                   )}
                 </td>
               </tr>

@@ -83,6 +83,17 @@ function AdminDashboard({
                           >
                             Manage Exam
                           </li>
+
+                           {
+                            user?.role == Roles.admin ? (
+                              <li
+                                className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                                onClick={() => navigation.push('/home/removed-data/remove-exams')}
+                              >
+                                Removed Exams
+                              </li>
+                            ) : (<></>)
+                          }
                         </ul>
                       )}
 
@@ -112,6 +123,17 @@ function AdminDashboard({
                           >
                             Manage Questions
                           </li>
+
+                          {
+                            user?.role == Roles.admin ? (
+                              <li
+                                className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                                onClick={() => navigation.push('/home/removed-data/removed-questions')}
+                              >
+                                Removed Questions
+                              </li>
+                            ) : (<></>)
+                          }
                         </ul>
                       )}
                       {/* //  groups menu  */}
@@ -140,6 +162,16 @@ function AdminDashboard({
                           >
                             Manage Group
                           </li>
+                          {
+                            user?.role == Roles.admin ? (
+                              <li
+                                className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                                onClick={() => navigation.push('/home/removed-data/removed-groups')}
+                              >
+                                Removed Groups
+                              </li>
+                            ) : (<></>)
+                          }
                         </ul>
                       )}
 
@@ -170,19 +202,19 @@ function AdminDashboard({
                           </li>
 
                           {
-                            user?.role == "Admin" ? (<>
-                            <li
-                              className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
-                              onClick={() => navigation.push('/home/participant-activity')}
-                            >
-                              Participant Activity
-                            </li>
-                            <li
-                              className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
-                              onClick={() => navigation.push('/home/removed-data/removed-participants')}
-                            >
-                              Removed Participant
-                            </li>
+                            user?.role == Roles.admin ? (<>
+                              <li
+                                className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                                onClick={() => navigation.push('/home/participant-activity')}
+                              >
+                                Participant Activity
+                              </li>
+                              <li
+                                className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                                onClick={() => navigation.push('/home/removed-data/removed-participants')}
+                              >
+                                Removed Participant
+                              </li>
                             </>) : (<></>)
                           }
                         </ul>
