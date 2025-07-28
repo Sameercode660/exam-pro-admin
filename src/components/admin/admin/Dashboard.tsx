@@ -208,9 +208,9 @@ const Dashboard = () => {
 };
 
 const StatCard = ({ title, value, onclick}: { title: string; value: number; onclick?: () => void }) => (
-  <div className="bg-white text-blue-500 rounded-xl p-4 text-center shadow-sm cursor-pointer" onClick={onclick}>
-    <h3 className="text-sm font-medium">{title}</h3>
-    <p className="text-2xl font-bold mt-1">{value}</p>
+  <div className="bg-white  rounded-xl p-4 text-center shadow-sm cursor-pointer" onClick={onclick}>
+    <h3 className="text-sm font-medium text-black">{title}</h3>
+    <p className="text-2xl font-bold mt-1 underline text-blue-500">{value}</p>
   </div>
 );
 
