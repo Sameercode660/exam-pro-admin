@@ -78,7 +78,7 @@ function CreateExam() {
         createdByAdminId: adminId,
       };
 
-      const response = await axios.post('http://localhost:3000/api/exams/create-exam', payload);
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/exams/create-exam`, payload);
       console.log(response.data)
 
 
