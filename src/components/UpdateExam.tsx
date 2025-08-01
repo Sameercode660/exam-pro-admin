@@ -47,7 +47,7 @@ const UpdateExam: React.FC = () => {
       try {
         const res = await axios.post(
           `${process.env.NEXT_PUBLIC_ROOT_URL}/exams/fetch-single-exam`,
-          { examId, adminId }
+          { examId: Number(examId), adminId: Number(adminId) }
         );
 
         if (res.data.status) {
