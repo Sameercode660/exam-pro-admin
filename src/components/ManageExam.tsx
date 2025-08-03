@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface Admin {
   id: number;
@@ -36,203 +37,182 @@ function ManageExam() {
   const [exams, setExams] = useState<Exam[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
-  const [deleteLoading, setDeleteLoading] = useState(false)
-  const [error, setError] = useState<null | string>(null);
-  const [openDeletePopup, setOpenDeletePopup] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const router = useRouter();
   const { user } = useAuth();
-  const adminId = user?.id
+  const adminId = user?.id;
 
   const fetchExams = async () => {
     try {
       setLoading(true);
-      console.log(adminId)
       const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/exams/fetch-all-exam`, { adminId });
-      console.log(response)
       setExams(response.data.response);
-      setLoading(false);
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      }
+      setError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
       setLoading(false);
     }
   };
 
   const handleSearch = async () => {
-
-    if (!searchQuery) {
-      alert('Input text to search');
-      return;
-    }
+    if (!searchQuery) return alert('Input text to search');
     try {
       setLoading(true);
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/exams/exam-search`, {
-        query: searchQuery
-      });
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/exams/exam-search`, { query: searchQuery });
       setExams(response.data.results);
-      setLoading(false);
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      }
+      setError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async () => {
+    if (!deleteTargetId) return;
     try {
       setDeleteLoading(true);
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/exams/delete-exam`, {
-        examId: id,
-        adminId
+      await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/exams/delete-exam`, {
+        examId: deleteTargetId,
+        adminId,
       });
-
-      setDeleteLoading(false);
-      setOpenDeletePopup(false);
       fetchExams();
     } catch (error) {
-      if (error instanceof Error) {
-        alert(error.message);
-      }
+      alert(error instanceof Error ? error.message : 'Delete failed');
+    } finally {
       setDeleteLoading(false);
-      setOpenDeletePopup(false);
+      setDeleteTargetId(null);
     }
   };
 
   useEffect(() => {
-    fetchExams()
-  }, [])
+    fetchExams();
+  }, []);
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
+  if (loading) return <div className="p-6 text-center">Loading exams...</div>;
+  if (error) return <div className="p-6 text-center text-red-500">Error: {error}</div>;
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Manage Exams</h1>
-
-      <div className="mb-4">
+    <div className="p-6 space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
         <input
           type="text"
           placeholder="Search exams..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-3 py-2 border rounded"
+          className="w-full md:max-w-md px-4 py-2 border border-gray-300 rounded-lg shadow-sm"
         />
-        <button
-          onClick={handleSearch}
-          className="mt-2 mr-1 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          Search
-        </button>
-        <button
-          onClick={() => {
-            fetchExams()
-          }}
-          className="mt-2 ml-1 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          All Exam
-        </button>
+        <div className="flex gap-2">
+          <button onClick={handleSearch} className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+            Search
+          </button>
+          <button onClick={fetchExams} className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">
+            All Exams
+          </button>
+        </div>
       </div>
 
       {exams.length === 0 ? (
-        <p>No exams found.</p>
+        <p className="text-center text-gray-500">No exams found.</p>
       ) : (
         <div className="space-y-4">
           {exams.map((exam) => (
-            <div key={exam.id}>
-              <div
-                key={exam.id}
-                className="border p-4 rounded-lg shadow-md bg-white flex justify-between items-center"
-              >
-                <div className='flex flex-col space-y-1.5'>
-                  <h2 className="text-lg font-semibold text-blue-400 underline cursor-pointer" onClick={() => router.push(`/home/exams/exam-details/${exam.id}`)}>{exam.title.toUpperCase()}</h2>
-                  <p className='font-semibold text-gray-500'>{exam.description}</p>
-                  <div className='flex space-x-5'>
-                    <p className='font-semibold text-gray-500 text-sm bg-gray-200 flex justify-center items-center rounded pl-2 pr-2'> {exam.examCode}</p>
-                    <p className='font-semibold text-gray-500 text-sm bg-gray-200 flex justify-center items-center rounded pl-2 pr-2'>{exam.duration} minutes</p>
-                    {exam.status == "Scheduled" ? (
-                      <div className="flex flex-col bg-green-200 text-yellow-800 rounded px-2 py-1 text-sm font-semibold">
-                        <span>Scheduled</span>
-                        <span>{new Date(exam.startTime).toLocaleString()} - {new Date(exam.endTime).toLocaleString()}</span>
-                      </div>
-                    ) : (
-                      <p
-                        className={`font-semibold text-sm flex justify-center items-center rounded px-2
-    ${exam.status === "Active" ? 'bg-green-100 text-green-800' :
-                            exam.status === "Inactive" ? 'bg-gray-200 text-gray-700' :
-                              exam.status === "Scheduled" ? 'bg-yellow-100 text-yellow-800' :
-                                exam.status === "Completed" ? 'bg-green-500 text-white' :
-                                  'bg-blue-200 text-blue-800'}
-  `}
-                      >
-                        {exam.status || "Status Not Set"}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div className="space-x-2">
-                  <button
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                    onClick={() => setOpenDeletePopup(true)}
-                  >
-                    Delete
-                  </button>
-                  <button
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                    onClick={() => {
-                      router.push(`/home/exams/update-exam/${exam.id}`)
-                    }}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                    onClick={() => router.push(`/home/exams/add-question/${exam.id}`)}
-                  >
-                    Add Question
-                  </button>
-                  {/* (commented on 18/07/2025 -> applied same feature to title) */}
-                  {/* <button
-                    className="bg-sky-400 text-white px-4 py-2 rounded hover:bg-green-600"
-                    onClick={() => router.push(`/home/exams/exam-details/${exam.id}`)}
-                  >
-                    View
-                  // </button> */}
+            <div key={exam.id} className="border p-5 rounded-xl shadow-md bg-white flex justify-between items-start">
+              <div className="space-y-2">
+                <h2
+                  onClick={() => router.push(`/home/exams/exam-details/${exam.id}`)}
+                  className="text-xl font-bold text-blue-600 underline cursor-pointer"
+                >
+                  {exam.title.toUpperCase()}
+                </h2>
+                <p className="text-gray-600 font-medium">{exam.description}</p>
+                <div className="flex flex-wrap gap-3">
+                  <span className="bg-gray-100 px-3 py-1 rounded-full text-sm text-gray-700">{exam.examCode}</span>
+                  <span className="bg-gray-100 px-3 py-1 rounded-full text-sm text-gray-700">{exam.duration} min</span>
+                  {exam.status === "Scheduled" ? (
+                    <div className="flex flex-col text-sm bg-yellow-100 text-yellow-800 rounded px-2 py-1 font-semibold">
+                      <span>Scheduled</span>
+                      <span>
+                        {new Date(exam.startTime).toLocaleString()} - {new Date(exam.endTime).toLocaleString()}
+                      </span>
+                    </div>
+                  ) : (
+                    <span
+                      className={`px-3 py-1 text-sm rounded-full font-semibold text-white ${
+                        exam.status === "Active" ? 'bg-green-500' :
+                        exam.status === "Inactive" ? 'bg-gray-400' :
+                        exam.status === "Completed" ? 'bg-blue-500' :
+                        'bg-gray-300'
+                      }`}
+                    >
+                      {exam.status}
+                    </span>
+                  )}
                 </div>
               </div>
-
-              {
-                openDeletePopup ? (<div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,0.3)]">
-                  <div className="bg-white p-6 rounded-lg shadow-lg">
-                    <h2 className="text-xl font-semibold mb-4">Are you sure?</h2>
-                    <p className="text-gray-600 mb-6">Do you really want to delete this item.</p>
-                    <div className="flex justify-end space-x-4">
-                      <button
-                        className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300"
-                        onClick={() => {
-                          setOpenDeletePopup(false)
-                        }}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600"
-                        disabled={deleteLoading}
-                        onClick={() => {
-                          handleDelete(exam.id);
-                        }}
-                      >
-                        {deleteLoading ? "Deleting..." : "Delete"}
-                      </button>
-                    </div>
-                  </div>
-                </div>) : (<></>)
-              }
+              <div className="space-x-2">
+                <button
+                  onClick={() => setDeleteTargetId(exam.id)}
+                  className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={() => router.push(`/home/exams/update-exam/${exam.id}`)}
+                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => router.push(`/home/exams/add-question/${exam.id}`)}
+                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+                >
+                  Add Question
+                </button>
+              </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteTargetId !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white p-6 rounded-xl shadow-2xl w-full max-w-md"
+            >
+              <h2 className="text-xl font-bold mb-4 text-gray-800">Delete Exam</h2>
+              <p className="text-gray-600 mb-6">Are you sure you want to delete this exam? This action cannot be undone.</p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setDeleteTargetId(null)}
+                  className="px-4 py-2 text-sm text-gray-700 bg-gray-200 rounded hover:bg-gray-300 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleteLoading}
+                  className="px-4 py-2 text-sm text-white bg-red-500 rounded hover:bg-red-600 transition"
+                >
+                  {deleteLoading ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState } from "react";
-import axios from "axios";
 import { useRouter } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
-
 
 interface QuestionOption {
   id: number;
@@ -39,59 +38,44 @@ interface QuestionResponse {
   category: QuestionCategory;
   topic: QuestionTopic;
   options: QuestionOption[];
-  createdByName: string;
 }
 
 interface QuestionCardProps {
   questions: QuestionResponse[];
   fetchQuestions: (currentPage: number) => Promise<void>;
-  page: number
+  page: number;
 }
 
 const QuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestions, page }) => {
-  const [loading, setLoading] = useState(false);
-  const [openDeletePopup, setOpenDeletePopup] = useState(false);
   const router = useRouter();
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
   const {user} = useAuth();
-  // Function to delete the question
-  const handleDelete = async (id: number) => {
-    
-    
+  const adminId = user?.id;
+
+  const handleDelete = async (id: number | null) => {
+    if (!id) return;
+
     try {
-
-      const data = { questionId: id, adminId: user?.id };
-      console.log(data)
-      console.log(data);
-
       setLoading(true);
-      const response = await axios.delete(
-        `${process.env.NEXT_PUBLIC_ROOT_URL}/questions/delete-question`,
-        { data }
-      );
-      setLoading(false);
-      setOpenDeletePopup(false)
+      const res = await fetch(`${process.env.NEXT_PUBLIC_ROOT_URL}/questions/delete-question`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId: id, adminId }) 
+      });
 
-      if (response.data.status) {
-        console.log("Question deleted successfully:", response.data.message);
-        fetchQuestions(page); // Refetch questions after deletion
+      const result = await res.json();
+      if (result.status) {
+        fetchQuestions(page);
       } else {
-        console.error("Failed to delete question:", response.data.message);
-        alert(response.data.message);
+        alert(result.message || "Failed to delete");
       }
     } catch (error) {
-      if (error instanceof Error) {
-        console.error("Error in deleting:", error.message);
-        alert(error.message);
-      }
+      alert("Something went wrong while deleting");
     } finally {
       setLoading(false);
-      setOpenDeletePopup(false)
+      setDeleteTargetId(null);
     }
-  };
-
-  const handleEdit = (id: number) => {
-    console.log("Edit question with ID:", id);
-    // Add edit logic here
   };
 
   return (
@@ -99,109 +83,114 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestions, 
       {questions.map((question) => (
         <div
           key={question.id}
-          className="bg-white shadow-md rounded-lg p-4 border border-gray-200 flex justify-between"
+          className="bg-white shadow-md rounded-xl p-6 border border-gray-200 w-full"
         >
+          {/* Header: Question and Metadata */}
+          <div className="flex justify-between items-center gap-4 mb-4 w-full overflow-hidden">
+            <h2 className="text-lg font-semibold text-gray-800 truncate max-w-[60%] whitespace-nowrap">
+              {question.text}
+            </h2>
 
-          {/* actual question */}
-          <div className="mt-4">
-            <h2 className="text-xl font-bold text-gray-800 mb-2">{question.text}</h2>
-            <h3 className="font-semibold text-gray-800">Options:</h3>
-            <ul className="list-disc list-inside text-gray-600">
+            <div className="flex items-center gap-2 flex-shrink-0 min-w-0 overflow-hidden">
+              <span className="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full truncate whitespace-nowrap max-w-[130px]">
+                {question.category.name}
+              </span>
+              <span className="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full truncate whitespace-nowrap max-w-[130px]">
+                {question.topic.name}
+              </span>
+              <span
+                className={`text-xs font-semibold px-3 py-1 rounded-full truncate whitespace-nowrap ${
+                  question.difficulty === "EASY"
+                    ? "bg-green-100 text-green-700"
+                    : question.difficulty === "MEDIUM"
+                    ? "bg-yellow-100 text-yellow-700"
+                    : "bg-red-100 text-red-700"
+                }`}
+              >
+                {question.difficulty}
+              </span>
+              <span className="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full truncate whitespace-nowrap max-w-[100px]">
+                {new Date(question.createdAt).toLocaleDateString()}
+              </span>
+            </div>
+          </div>
+
+          {/* Options */}
+          <div className="mb-4">
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Options:</h3>
+            <ul className="space-y-1">
               {question.options.map((option) => (
                 <li
                   key={option.id}
-                  className={`${option.isCorrect ? "text-green-600 font-semibold" : ""
-                    }`}
+                  className={`px-3 py-2 rounded-lg text-sm ${
+                    option.isCorrect
+                      ? "bg-green-50 text-green-800 font-medium border border-green-200"
+                      : "text-gray-700"
+                  }`}
                 >
                   {option.text}
                 </li>
               ))}
             </ul>
-                 <div className="mt-4 flex space-x-4">
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end items-center gap-3 mt-4">
             <button
-              onClick={() => {
-                router.push(`/home/questions/update-question/${question.id}`)
-              }}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 cursor-pointer"
+              onClick={() => router.push(`/home/questions/update-question/${question.id}`)}
+              className="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition"
             >
               Edit
             </button>
             <button
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-              onClick={() => {
-                setOpenDeletePopup(true)
-              }}
+              onClick={() => setDeleteTargetId(question.id)}
+              className="px-4 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition"
             >
               Delete
             </button>
           </div>
-          </div>
-
-          {/* question info  */}
-          <div className="flex space-x-6">
-            {/* <p className="text-gray-600">
-              <span className="font-semibold">Created By:</span> {question.createdByName}
-            </p> */}
-            <li className="text-gray-400 list-none font-semibold bg-gray-100 h-7 p-1 flex justify-center items-center rounded-md">
-               &#8226;{" "}{question.category.name}
-            </li>
-            <li className="text-gray-400 list-none font-semibold bg-gray-100 h-7 p-1 flex justify-center items-center rounded-md">
-               &#8226;{" "}{question.topic.name}
-            </li>
-            <li className="text-gray-400 list-none font-semibold h-7 p-1 flex justify-center items-center rounded-md">
-              <span
-                className={`px-2 py-1 rounded ${question.difficulty === "EASY"
-                  ? "bg-green-100 text-green-800"
-                  : question.difficulty === "MEDIUM"
-                    ? "bg-yellow-100 text-yellow-800"
-                    : "bg-red-100 text-red-800"
-                  }`}
-              >
-                &#8226;{" "}{question.difficulty}
-              </span>
-            </li>
-            <li className="text-gray-400 list-none font-semibold bg-gray-100 h-7 p-1 flex justify-center items-center rounded-md">
-              &#8226;{" "}{new Date(question.createdAt).toLocaleDateString()}
-            </li>
-          </div>
-
-          {/* edit  */}
-     
-
-          {/* delete option Popup  */}
-          {
-            openDeletePopup ? (<div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(0,0,0,0.3)]">
-              <div className="bg-white p-6 rounded-lg shadow-lg">
-                <h2 className="text-xl font-semibold mb-4">Are you sure?</h2>
-                <p className="text-gray-600 mb-6">Do you really want to delete this item.</p>
-                <div className="flex justify-end space-x-4">
-                  <button
-                    className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300"
-                    onClick={() => {
-                      setOpenDeletePopup(false)
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600"
-                    onClick={() =>
-                      handleDelete(question.id)
-                    }
-                    disabled={loading}
-                  >
-                    {loading ? "Deleting..." : "Delete"}
-                  </button>
-                </div>
-              </div>
-            </div>) : (<></>)
-          }
-
         </div>
       ))}
 
-
-
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteTargetId !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/30"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white w-full max-w-md mx-auto p-6 rounded-2xl shadow-2xl border border-gray-200"
+            >
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">Delete Question</h2>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete this question? This action cannot be undone.
+              </p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
+                  onClick={() => setDeleteTargetId(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="px-4 py-2 text-sm font-semibold text-white bg-red-500 rounded-lg hover:bg-red-600 transition"
+                  onClick={() => handleDelete(deleteTargetId)}
+                  disabled={loading}
+                >
+                  {loading ? "Deleting..." : "Delete"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
