@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import DynamicTable from '@/components/utils/DynamicTable';
+import { useRouter } from 'next/navigation';
 
 interface Organization {
   id: number;
@@ -19,6 +21,7 @@ const Organizations = () => {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const fetchOrganizations = async () => {
     setLoading(true);
@@ -41,9 +44,19 @@ const Organizations = () => {
     fetchOrganizations();
   };
 
+  const columns = [
+    'name',
+    'email',
+    'phone',
+    'address',
+    'State',
+    'Country',
+    'Created At',
+  ];
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <form onSubmit={handleSearch} className="mb-6 flex gap-2">
+      {/* <form onSubmit={handleSearch} className="mb-6 flex gap-2">
         <input
           type="text"
           placeholder="Search organizations..."
@@ -57,41 +70,24 @@ const Organizations = () => {
         >
           Search
         </button>
-      </form>
+      </form> */}
 
       {loading ? (
         <div className="text-gray-500">Loading...</div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full table-auto border border-gray-200">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="border px-4 py-2 text-left">Name</th>
-                <th className="border px-4 py-2 text-left">Email</th>
-                <th className="border px-4 py-2 text-left">Phone</th>
-                <th className="border px-4 py-2 text-left">Address</th>
-                <th className="border px-4 py-2 text-left">State</th>
-                <th className="border px-4 py-2 text-left">Country</th>
-                <th className="border px-4 py-2 text-left">Code</th>
-                <th className="border px-4 py-2 text-left">Created At</th>
-              </tr>
-            </thead>
-            <tbody>
-              {organizations.map((org) => (
-                <tr key={org.id} className="hover:bg-gray-50">
-                  <td className="border px-4 py-2">{org.name}</td>
-                  <td className="border px-4 py-2">{org.email}</td>
-                  <td className="border px-4 py-2">{org.phone}</td>
-                  <td className="border px-4 py-2">{org.address}</td>
-                  <td className="border px-4 py-2">{org.State}</td>
-                  <td className="border px-4 py-2">{org.CountryCode + org.Country}</td>
-                  {/* <td className="border px-4 py-2">{org.CountryCode}</td> */}
-                  <td className="border px-4 py-2">{new Date(org.createdAt).toLocaleDateString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DynamicTable
+          color='text-blue-500'
+          event={() => {
+            router.push('/home')
+          }}
+          columns={columns}
+          data={organizations.map((org) => ({
+            ...org,
+            Country: `${org.CountryCode} ${org.Country}`,
+            'Created At': new Date(org.createdAt).toLocaleDateString(),
+          }))}
+          searchable={true}
+        />
       )}
     </div>
   );

@@ -5,6 +5,8 @@ type DynamicTableProps = {
   data: Record<string, any>[];
   renderCell?: (row: Record<string, any>, column: string) => ReactNode;
   searchable?: boolean;
+  color?: string;
+  event?: () => void;
 };
 
 export default function DynamicTable({
@@ -12,6 +14,8 @@ export default function DynamicTable({
   data,
   renderCell,
   searchable = false,
+  color,
+  event
 }: DynamicTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -43,7 +47,7 @@ export default function DynamicTable({
           <thead className="bg-[#f1e9d9] text-gray-800 font-semibold">
             <tr>
               {columns.map((col) => (
-                <th key={col} className="px-4 py-3 text-center">
+                <th key={col} className={`px-4 py-3 text-center `}>
                   {col}
                 </th>
               ))}
@@ -59,8 +63,8 @@ export default function DynamicTable({
             ) : (
               filteredData.map((row, i) => (
                 <tr key={i} className="hover:bg-gray-100 border-b text">
-                  {columns.map((col) => (
-                    <td key={col} className="px-4 py-2 text-center border-0">
+                  {columns.map((col, index) => (
+                    <td key={col} className={`px-4 py-2 text-center border-0 ${(color && index == 0) == true ? `${color} cursor-pointer` : ''}`} onClick={event != null ? event : () => { }}>
                       {renderCell ? renderCell(row, col) : row[col] ?? "-"}
                     </td>
                   ))}
