@@ -116,12 +116,19 @@ function AdminDashboard({
                             Create Questions
                           </li>
 
-                          {/* manage exam  */}
+                          {/* manage questions */}
                           <li
                             className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
                             onClick={() => navigation.push('/home/questions/manage-questions')}
                           >
                             Manage Questions
+                          </li>
+
+                          <li
+                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                            onClick={() => navigation.push('/home/staging-data/staging-questions')}
+                          >
+                            Staging Questions
                           </li>
 
                           {
