@@ -9,10 +9,10 @@ import { useAuth } from "@/context/AuthContext";
 const CreateParticipant: React.FC = () => {
   // Bulk Upload State (Individual fields)
   const [excelFile, setExcelFile] = useState<File | null>(null);
-  
+
   // credential from auth
-  const {user} = useAuth();
-  const organizationId =  user?.organizationId.toString();
+  const { user } = useAuth();
+  const organizationId = user?.organizationId.toString();
   const adminId = user?.id;
 
   const [excelUploadLoading, setExcelUploadLoading] = useState(false);
@@ -41,8 +41,8 @@ const CreateParticipant: React.FC = () => {
       toast.success(`${res.data.totalNewParticipants} participants created!`);
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Bulk upload failed.");
-    } finally{
-        setExcelUploadLoading(false)
+    } finally {
+      setExcelUploadLoading(false)
     }
   };
 
@@ -66,8 +66,18 @@ const CreateParticipant: React.FC = () => {
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Single creation failed.");
     } finally {
-        setSingleUplaodLoading(false)
+      setSingleUplaodLoading(false)
     }
+  };
+
+  // downlad excel file functin 
+  const handleDownload = () => {
+    const link = document.createElement("a");
+    link.href = "https://docs.google.com/spreadsheets/d/1H5fNF9kPYii7ElicRM1TlA5Y4x3IRknD/export?format=xlsx";
+    link.download = "Excel_Sample.xlsx"; // suggested filename
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -76,8 +86,16 @@ const CreateParticipant: React.FC = () => {
 
       {/* Bulk Upload */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-700">Create Participant(Excel)</h3>
+        <div className="flex justify-between">
+          <h3 className="text-lg font-semibold text-gray-700">Create Participant(Excel)</h3>
 
+          <button
+            onClick={handleDownload}
+            className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 text-sm font-medium"
+          >
+            📥 Download Excel Sample
+          </button>
+        </div>
         <input
           type="file"
           accept=".xlsx, .xls"

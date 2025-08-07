@@ -3,6 +3,8 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import { ToastContainer, toast } from 'react-toastify';
+import "react-toastify/dist/ReactToastify.css";
 
 type Role = 'SuperAdmin' | 'Admin' | 'SuperUser' | 'User';
 
@@ -63,16 +65,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const res = await axios.post(
-      `${process.env.NEXT_PUBLIC_ROOT_URL}/authentication/admin-login`,
-      { email, password },
-      { withCredentials: true }
-    );
-    console.log(res.data)
-    setUser(res.data.user);
-    router.push('/home'); // redirect on successful login
-  };
+    try {
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_ROOT_URL}/authentication/admin-login`,
+        { email, password },
+        { withCredentials: true }
+      );
 
+      setUser(res.data.user);
+      router.push('/home'); // redirect on successful login
+    } catch (error: any) {
+      // Only show toast, no logging or rethrowing
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Login failed. Please try again.';
+      toast.error(message);
+    }
+  };
   const logout = async () => {
     await axios.post(
       `${process.env.NEXT_PUBLIC_ROOT_URL}/authentication/admin-logout`,

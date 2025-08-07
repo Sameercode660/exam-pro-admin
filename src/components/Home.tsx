@@ -207,6 +207,12 @@ function AdminDashboard({
                           >
                             Manage Participant
                           </li>
+                           <li
+                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                            onClick={() => navigation.push('/home/staging-data/staging-participants')}
+                          >
+                            Staging Participants
+                          </li>
 
                           {
                             user?.role == Roles.admin ? (<>
