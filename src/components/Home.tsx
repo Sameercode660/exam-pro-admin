@@ -16,7 +16,8 @@ function AdminDashboard({
   const [openExamMenu, setOpenExamMenu] = useState(false);
   const [openQuestionMenu, setOpenQuestionMenu] = useState(false);
   const [openGroupMenu, setOpenGroupMenu] = useState(false);
-  const [openParticipantMenu, setOpenParticipantMenu] = useState(false)
+  const [openParticipantMenu, setOpenParticipantMenu] = useState(false);
+  const [openWordCloudMenu, setOpenWordCloudMenu] = useState(false);
   const navigation = useRouter()
   const { logout } = useAuth();
   const { user } = useAuth();
@@ -84,7 +85,7 @@ function AdminDashboard({
                             Manage Exam
                           </li>
 
-                           {
+                          {
                             user?.role == Roles.admin ? (
                               <li
                                 className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
@@ -207,7 +208,7 @@ function AdminDashboard({
                           >
                             Manage Participant
                           </li>
-                           <li
+                          <li
                             className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
                             onClick={() => navigation.push('/home/staging-data/staging-participants')}
                           >
@@ -230,6 +231,25 @@ function AdminDashboard({
                               </li>
                             </>) : (<></>)
                           }
+                        </ul>
+                      )}
+
+                      {/* word cloud  */}
+                      <li
+                        className="py-2 px-4 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
+                        onClick={() => setOpenWordCloudMenu(prev => !prev)}
+                      >
+                        Word Cloud {openWordCloudMenu ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                      </li>
+                      {openWordCloudMenu && (
+                        <ul className="ml-4">
+                          {/* create word cloud  */}
+                          <li
+                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                            onClick={() => navigation.push('/home/word-cloud/create')}
+                          >
+                            Create WordCloud
+                          </li>
                         </ul>
                       )}
                     </div>
