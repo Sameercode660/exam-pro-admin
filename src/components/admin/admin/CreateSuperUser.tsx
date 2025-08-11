@@ -52,21 +52,6 @@ const CreateSuperUser = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!organizationId || !adminId) return;
-
-    if ((!form.email.includes('@')) || (!form.email.endsWith('.com'))) {
-      toast.error('Inavalid email format')
-      setEmailError(true);
-      eraseError(setEmailError);
-      return;
-    }
-
-    if (form.mobileNumber.length > 12 || form.mobileNumber.startsWith('12345')) {
-      toast.error('Please enter correct mobile number');
-      setMobileNumberError(true);
-      eraseError(setMobileNumberError);
-      return;
-    }
-
     if (form.name == '') {
       setNameError(true);
       eraseError(setNameError);
@@ -85,6 +70,19 @@ const CreateSuperUser = () => {
       return;
     }
 
+    if ((!form.email.includes('@')) || (!form.email.endsWith('.com'))) {
+      toast.error('Inavalid email format')
+      setEmailError(true);
+      eraseError(setEmailError);
+      return;
+    }
+
+    if (form.mobileNumber.length > 12 || form.mobileNumber.startsWith('12345')) {
+      toast.error('Please enter correct mobile number');
+      setMobileNumberError(true);
+      eraseError(setMobileNumberError);
+      return;
+    }
     try {
       setLoading(true);
       const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/admin/create-super-user`, {
