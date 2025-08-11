@@ -102,7 +102,7 @@ const CreateGroupForm = () => {
 
       <div className="space-y-5">
         <div>
-          <label className="block mb-1 text-sm font-medium text-gray-700">Group Name</label>
+          <label className="block mb-1 text-sm font-medium text-gray-700">Group Name  <span className="required text-red-400" aria-hidden="true">*</span></label>
           <input
             type="text"
             value={name}
@@ -113,7 +113,7 @@ const CreateGroupForm = () => {
         </div>
 
         <div>
-          <label className="block mb-1 text-sm font-medium text-gray-700">Description</label>
+          <label className="block mb-1 text-sm font-medium text-gray-700">Description <span className="required text-red-400" aria-hidden="true">*</span></label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -125,7 +125,7 @@ const CreateGroupForm = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700">Start Date</label>
+            <label className="block mb-1 text-sm font-medium text-gray-700">Start Date <span className="required text-red-400" aria-hidden="true">*</span></label>
             <input
               type="date"
               disabled
@@ -136,7 +136,7 @@ const CreateGroupForm = () => {
             />
           </div>
           <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700">End Date</label>
+            <label className="block mb-1 text-sm font-medium text-gray-700">End Date <span className="required text-red-400" aria-hidden="true">*</span></label>
             <input
               type="date"
               value={endDate}

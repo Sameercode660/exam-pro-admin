@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import AddQuestionCard from './AddQuestionCard';
 import { useParams } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 const AddQuestionInExam = () => {
   const [categories, setCategories] = useState([]);
   const [topics, setTopics] = useState([]);
@@ -15,13 +16,14 @@ const AddQuestionInExam = () => {
   const [selectedTopic, setSelectedTopic] = useState<number | null>(null);
   const [difficulty, setDifficulty] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState(''); // Searching state
+  const {user} = useAuth();
+  const adminId = user?.id;
 
   const limit = 10; // Number of questions per page
 
   // Fetch Categories
   const fetchCategories = async () => {
     setError('');
-    const adminId = Number(localStorage.getItem('adminId')) || 1;
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/filtering/fetch-category`, { adminId });
       setCategories(response.data || []);
@@ -34,7 +36,6 @@ const AddQuestionInExam = () => {
   // Fetch Topics for the Selected Category
   const fetchTopics = async (categoryId: number) => {
     setError('');
-    const adminId = localStorage.getItem('adminId');
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/filtering/fetch-topics`, { categoryId, adminId });
       setTopics(response.data || []);
@@ -48,7 +49,6 @@ const AddQuestionInExam = () => {
   const fetchQuestions = async () => {
     setLoading(true);
     setError('');
-    const adminId = Number(localStorage.getItem('adminId')) || 1;
 
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_ROOT_URL}/filtering/filters-questions`, {
@@ -75,7 +75,6 @@ const AddQuestionInExam = () => {
     if (!searchTerm) return; // Skip if search term is empty
     setLoading(true);
     setError('');
-    const adminId = Number(localStorage.getItem('adminId')) || 1;
 
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_ROOT_URL}/filtering/search`, {

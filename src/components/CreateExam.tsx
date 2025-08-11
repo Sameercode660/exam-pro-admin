@@ -113,7 +113,7 @@ function CreateExam() {
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="block text-sm font-semibold text-gray-600 mb-1">Title</label>
+          <label className="block text-sm font-semibold text-gray-600 mb-1">Title <span className="required text-red-400" aria-hidden="true">*</span></label>
           <input
             type="text"
             value={title}
@@ -124,7 +124,7 @@ function CreateExam() {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-600 mb-1">Description</label>
+          <label className="block text-sm font-semibold text-gray-600 mb-1">Description <span className="required text-red-400" aria-hidden="true">*</span></label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -136,7 +136,7 @@ function CreateExam() {
 
         <div className='flex justify-between w-full gap-3'>
           <div className='w-[50%]'>
-            <label className="block text-sm font-semibold text-gray-600 mb-1">Duration (minutes)</label>
+            <label className="block text-sm font-semibold text-gray-600 mb-1">Duration (minutes) <span className="required text-red-400" aria-hidden="true">*</span></label>
             <input
               type="number"
               min={1}
@@ -149,7 +149,7 @@ function CreateExam() {
 
           {!scheduleMode && (
             <div className='w-[50%]'>
-              <label className="block text-sm font-semibold text-gray-600 mb-1">Status</label>
+              <label className="block text-sm font-semibold text-gray-600 mb-1">Status <span className="required text-red-400" aria-hidden="true">*</span></label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
@@ -177,7 +177,7 @@ function CreateExam() {
         {scheduleMode && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-1">Start Time</label>
+              <label className="block text-sm font-semibold text-gray-600 mb-1">Start Time <span className="required text-red-400" aria-hidden="true">*</span></label>
               <input
                 type="datetime-local"
                 value={startTime}
