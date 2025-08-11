@@ -16,10 +16,29 @@ const ManageQuestionBank = () => {
   const [selectedTopic, setSelectedTopic] = useState<number | null>(null);
   const [difficulty, setDifficulty] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState(''); // Search term state
-  const {user} = useAuth();
+  const { user } = useAuth();
   const adminId = user?.id;
+  const [batches, setBatches] = useState([]);
+  const [selectedBatchId, setSelectedBatchId] = useState<number | null>(null);
+  const organizationId = user?.organizationId;
 
   const limit = 10; // Number of questions per page
+
+
+
+  // Fetch batches
+  const fetchBatches = async () => {
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_ROOT_URL}/filtering/fetch-question-batches`, {
+        params: { organizationId }
+      });
+      console.log(response.data)
+      setBatches(response.data.response || []);
+    } catch (err) {
+      setError("Failed to fetch batches");
+      console.error(err);
+    }
+  };
 
   // Fetch Categories
   const fetchCategories = async () => {
@@ -36,7 +55,7 @@ const ManageQuestionBank = () => {
   // Fetch Topics for the Selected Category
   const fetchTopics = async (categoryId: number) => {
     setError('');
-    
+
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/filtering/fetch-topics`, { categoryId, adminId });
       setTopics(response.data || []);
@@ -58,6 +77,7 @@ const ManageQuestionBank = () => {
           categoryId: selectedCategory || undefined,
           topicId: selectedTopic || undefined,
           difficulty: difficulty || undefined,
+          batchId: selectedBatchId || undefined, // add batch filter
           page,
           limit,
         },
@@ -98,6 +118,7 @@ const ManageQuestionBank = () => {
   useEffect(() => {
     fetchQuestions();
     fetchCategories();
+    fetchBatches();
   }, []);
 
   // Fetch topics when a category is selected
@@ -187,6 +208,18 @@ const ManageQuestionBank = () => {
           <option value="HARD">Hard</option>
         </select>
       </div>
+      <select
+        value={selectedBatchId || ''}
+        onChange={(e) => setSelectedBatchId(Number(e.target.value) || null)}
+        className="p-2 border rounded"
+      >
+        <option value="">Select Batch</option>
+        {batches.map((batch: any) => (
+          <option key={batch.batchId} value={batch.batchId}>
+            {`${batch.batchId} - (${new Date(batch.batch.uploadedAt).toLocaleString()})`}
+          </option>
+        ))}
+      </select>
 
       {/* Question List */}
       {!loading && !error && questions.length > 0 && (

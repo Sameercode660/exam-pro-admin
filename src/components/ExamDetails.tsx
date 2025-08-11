@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import ExamDetailsCard from './ExamDetailsCard';
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useAuth } from '@/context/AuthContext';
 
 const ExamDetails = () => {
   const [categories, setCategories] = useState([]);
@@ -20,13 +21,15 @@ const ExamDetails = () => {
   const [difficulty, setDifficulty] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const { examId } = useParams();
+  const {user} = useAuth();
+  const adminId = user?.id;
 
   const limit = 10; // Number of questions per page
 
   // Fetch Categories
   const fetchCategories = async () => {
     setError('');
-    const adminId = Number(localStorage.getItem('adminId')) || 1;
+    // const adminId = Number(localStorage.getItem('adminId')) || 1;
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/filtering/fetch-category`, { adminId });
       setCategories(response.data || []);
@@ -39,7 +42,7 @@ const ExamDetails = () => {
   // Fetch Topics for the Selected Category
   const fetchTopics = async (categoryId: number) => {
     setError('');
-    const adminId = localStorage.getItem('adminId');
+    // const adminId = localStorage.getItem('adminId');
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/filtering/fetch-topics`, { categoryId, adminId });
       setTopics(response.data || []);
@@ -57,6 +60,7 @@ const ExamDetails = () => {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/exams/fetch-exam-question`, {
         examId: Number(examId),
       });
+      console.log(response.data)
       setQuestions(response.data.questions || []);
       setFilteredQuestions(response.data.questions || []);
     } catch (err) {

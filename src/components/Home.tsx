@@ -235,7 +235,7 @@ function AdminDashboard({
                       )}
 
                       {/* word cloud  */}
-                      <li
+                      {/* <li
                         className="py-2 px-4 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
                         onClick={() => setOpenWordCloudMenu(prev => !prev)}
                       >
@@ -243,7 +243,7 @@ function AdminDashboard({
                       </li>
                       {openWordCloudMenu && (
                         <ul className="ml-4">
-                          {/* create word cloud  */}
+
                           <li
                             className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
                             onClick={() => navigation.push('/home/word-cloud/create')}
@@ -251,7 +251,7 @@ function AdminDashboard({
                             Create WordCloud
                           </li>
                         </ul>
-                      )}
+                      )} */}
                     </div>
 
 
