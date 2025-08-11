@@ -6,6 +6,8 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "@/context/AuthContext";
 import moment from "moment";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 const ManageParticipants = () => {
   const { user } = useAuth();
@@ -16,7 +18,6 @@ const ManageParticipants = () => {
   const [search, setSearch] = useState("");
   const [participants, setParticipants] = useState<any[]>([]);
 
-  // Edit modal state
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editData, setEditData] = useState({
     id: 0,
@@ -29,14 +30,8 @@ const ManageParticipants = () => {
     try {
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_ROOT_URL}/participants/fetch-all-participant`,
-        {
-          search,
-          filter,
-          organizationId,
-          adminId,
-        }
+        { search, filter, organizationId, adminId }
       );
-
       setParticipants(res.data.participants);
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to fetch participants");
@@ -55,9 +50,7 @@ const ManageParticipants = () => {
     try {
       await axios.post(
         `${process.env.NEXT_PUBLIC_ROOT_URL}/participants/delete-participant`,
-        { participantId: id,
-          adminId: user?.id
-         }
+        { participantId: id, adminId: user?.id }
       );
       toast.success("Participant deleted");
       fetchParticipants();
@@ -72,7 +65,6 @@ const ManageParticipants = () => {
         `${process.env.NEXT_PUBLIC_ROOT_URL}/participants/fetch-single-participant`,
         { participantId: id }
       );
-
       const participant = res.data.participant;
       setEditData({
         id: participant.id,
@@ -80,7 +72,6 @@ const ManageParticipants = () => {
         email: participant.email,
         mobileNumber: participant.mobileNumber,
       });
-
       setEditModalOpen(true);
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to fetch participant details.");
@@ -93,7 +84,6 @@ const ManageParticipants = () => {
         ...editData,
         updatedById: adminId,
       });
-
       toast.success("Participant updated successfully.");
       setEditModalOpen(false);
       fetchParticipants();
@@ -106,31 +96,56 @@ const ManageParticipants = () => {
     fetchParticipants();
   };
 
+  // ✅ Export to Excel Function
+  const handleExportToExcel = () => {
+    if (participants.length === 0) {
+      toast.warning("No participants to export.");
+      return;
+    }
+
+    const exportData = participants.map((p) => ({
+      Name: p.name,
+      Email: p.email,
+      Mobile: p.mobileNumber,
+      Approved: p.approved ? "Yes" : "No",
+      "Created At": moment(p.createdAt).format("DD/MM/YYYY"),
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Participants");
+
+    const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([wbout], { type: "application/octet-stream" });
+    saveAs(blob, "ParticipantList.xlsx");
+  };
+
   return (
     <div className="p-6 max-w-6xl mx-auto mt-10 bg-white rounded-xl shadow-md space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800 text-center">
-        Manage Participants
-      </h2>
+      {/* Header with Export Button */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-800 text-center">
+          Manage Participants
+        </h2>
+        <button
+          onClick={handleExportToExcel}
+          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md"
+        >
+          Export to Excel
+        </button>
+      </div>
 
       {/* Tabs */}
       <div className="flex space-x-4 justify-center">
         <button
           onClick={() => setFilter("my")}
-          className={`px-4 py-2 rounded-md ${
-            filter === "my"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 text-gray-700"
-          }`}
+          className={`px-4 py-2 rounded-md ${filter === "my" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"}`}
         >
           My Participants
         </button>
         <button
           onClick={() => setFilter("all")}
-          className={`px-4 py-2 rounded-md ${
-            filter === "all"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 text-gray-700"
-          }`}
+          className={`px-4 py-2 rounded-md ${filter === "all" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"}`}
         >
           All Participants
         </button>
@@ -213,7 +228,6 @@ const ManageParticipants = () => {
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-xl shadow-lg space-y-4 w-full max-w-md">
             <h3 className="text-xl font-bold text-gray-800">Edit Participant</h3>
-
             <input
               type="text"
               placeholder="Name"
@@ -235,7 +249,6 @@ const ManageParticipants = () => {
               onChange={(e) => setEditData({ ...editData, mobileNumber: e.target.value })}
               className="w-full border p-2 rounded-md"
             />
-
             <div className="flex justify-end space-x-4 pt-2">
               <button
                 onClick={() => setEditModalOpen(false)}
