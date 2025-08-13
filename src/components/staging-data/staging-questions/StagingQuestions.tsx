@@ -47,6 +47,7 @@ export default function StagingQuestions() {
         uploadTimestamp: selectedTimestamp || undefined,
       });
 
+      console.log(res.data.data)
       const responseData = res.data?.data;
 
       if (!Array.isArray(responseData)) {
@@ -67,6 +68,7 @@ export default function StagingQuestions() {
         Correct: item.correctOption,
         Difficulty: item.difficultyLevel,
         Status: item.status,
+        ErrorMessage: item.errorMessage,
         Admin: item.admin?.name,
         CreatedAt: new Date(item.createdAt).toLocaleString("en-IN", {
           year: "numeric",
@@ -149,6 +151,7 @@ export default function StagingQuestions() {
           "Correct",
           "Difficulty",
           "Status",
+          "ErrorMessage",
           "Admin",
           "CreatedAt",
         ]}

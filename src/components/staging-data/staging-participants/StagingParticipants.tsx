@@ -55,6 +55,8 @@ export default function StagingParticipants() {
                 uploadTimestamp: selectedTimestamp || undefined,
             });
 
+            console.log(res.data)
+
             const responseData = res.data?.data;
 
             if (!Array.isArray(responseData)) {
@@ -71,6 +73,7 @@ export default function StagingParticipants() {
                 Mobile: item.mobileNumber,
                 Status: item.status,
                 Admin: item.admin?.name,
+                ErrorMessage: item.errorMessage,
                 CreatedAt: new Date(item.createdAt).toLocaleString("en-IN", {
                     year: "numeric",
                     month: "2-digit",
@@ -139,7 +142,7 @@ export default function StagingParticipants() {
             </div>
 
             <DynamicTable
-                columns={["ID", "Name", "Email", "Mobile", "Status", "Admin", "CreatedAt"]}
+                columns={["ID", "Name", "Email", "Mobile", "Status", "ErrorMessage","Admin", "CreatedAt"]}
                 data={tableData}
                 searchable
             />

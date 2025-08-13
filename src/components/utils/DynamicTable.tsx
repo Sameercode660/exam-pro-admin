@@ -17,7 +17,7 @@ export default function DynamicTable({
   renderCell,
   searchable = false,
   color,
-  event
+  event,
 }: DynamicTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -33,13 +33,22 @@ export default function DynamicTable({
   }, [searchTerm, data, columns, searchable]);
 
   const handleDownload = () => {
-    const worksheet = XLSX.utils.json_to_sheet(filteredData);
+    // Add Sr. numbers to exported data
+    const exportData = filteredData.map((row, idx) => ({
+      Sr: idx + 1,
+      ...row,
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "List");
     const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
     const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
     saveAs(blob, "List.xlsx");
   };
+
+  // New array of columns with "Sr." at the front
+  const tableColumns = useMemo(() => ["Sr.", ...columns], [columns]);
 
   return (
     <div className="p-2">
@@ -65,7 +74,7 @@ export default function DynamicTable({
         <table className="min-w-full border border-gray-300 text-sm">
           <thead className="bg-[#f1e9d9] text-gray-800 font-semibold">
             <tr>
-              {columns.map((col) => (
+              {tableColumns.map((col) => (
                 <th key={col} className="px-4 py-3 text-center">
                   {col}
                 </th>
@@ -75,20 +84,26 @@ export default function DynamicTable({
           <tbody className="bg-white">
             {filteredData.length === 0 ? (
               <tr className="hover:bg-gray-100 border-b">
-                <td colSpan={columns.length} className="text-center p-4 text-gray-500">
+                <td colSpan={tableColumns.length} className="text-center p-4 text-gray-500">
                   No data found.
                 </td>
               </tr>
             ) : (
               filteredData.map((row, i) => (
                 <tr key={i} className="hover:bg-gray-100 border-b">
-                  {columns.map((col, index) => (
+                  {tableColumns.map((col, index) => (
                     <td
                       key={col}
-                      className={`px-4 py-2 text-center border-0 ${(color && index === 0) ? `${color} cursor-pointer` : ''}`}
-                      onClick={event ?? (() => {})}
+                      className={`px-4 py-2 text-center border-0 ${
+                        color && index === 1 ? `${color} cursor-pointer` : ""
+                      }`}
+                      onClick={index === 1 && event ? event : undefined}
                     >
-                      {renderCell ? renderCell(row, col) : row[col] ?? "-"}
+                      {col === "Sr."
+                        ? i + 1
+                        : renderCell
+                        ? renderCell(row, col)
+                        : row[col] ?? "-"}
                     </td>
                   ))}
                 </tr>

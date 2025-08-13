@@ -179,6 +179,7 @@ const GroupManagement = () => {
       formData.append("file", uploadFile);
       formData.append("groupId", String(groupId));
       formData.append("organizationId", String(organizationId));
+      formData.append("createdById", String(adminId))
 
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_ROOT_URL}/groups/add-participant-file`,
@@ -195,10 +196,10 @@ const GroupManagement = () => {
       // socket event 
       socket?.emit('add-participant-admin', 'added')
 
-      if (addedNames.length > 0) toast.success(`Added: ${addedNames.join(", ")}`);
-      if (alreadyInGroupNames.length > 0) toast.info(`Already in group: ${alreadyInGroupNames.join(", ")}`);
-      if (unmatchedEmails.length > 0) toast.warning(`Not found in organization: ${unmatchedEmails.join(", ")}`);
-
+      // if (addedNames.length > 0) toast.success(`Added: ${addedNames.join(", ")}`);
+      // if (alreadyInGroupNames.length > 0) toast.info(`Already in group: ${alreadyInGroupNames.join(", ")}`);
+      // if (unmatchedEmails.length > 0) toast.warning(`Not found in organization: ${unmatchedEmails.join(", ")}`);
+      toast.success("Participants added in the group")
       setIsAddParticipantOpen(false);
       setUploadFile(null);
       setSelected([]);

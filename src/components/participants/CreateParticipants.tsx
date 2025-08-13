@@ -38,7 +38,7 @@ const CreateParticipant: React.FC = () => {
     setExcelUploadLoading(true)
     try {
       const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/participants/create-participant-file`, formData);
-      toast.success(`${res.data.totalNewParticipants} participants created!`);
+      toast.success(`participants created!`);
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Bulk upload failed.");
     } finally {
