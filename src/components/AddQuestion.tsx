@@ -8,6 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useAuth } from '@/context/AuthContext';
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { downloadUploadSummaryExcel } from '@/lib/summary-download';
 
 function AddQuestion() {
   const [loading, setLoading] = useState(false);
@@ -43,19 +44,22 @@ function AddQuestion() {
     try {
       setLoading(true);
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_ROOT_URL}/questions/file-question-upload?adminId=${adminId}`, {
-        method: 'POST',
-        body: formData,
-      });
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_ROOT_URL}/questions/file-question-upload?adminId=${adminId}`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
 
-      if (!response.ok) {
-        toast.error('Failed to upload file');
-        return;
-      }
-
+      console.log(response.data);
+      downloadUploadSummaryExcel(response.data.summaryData, "Question");
       toast.success('File uploaded successfully');
       router.push('/home/questions/manage-questions');
     } catch (error) {
+      console.log(error)
       toast.error('Error uploading file');
     } finally {
       setLoading(false);
