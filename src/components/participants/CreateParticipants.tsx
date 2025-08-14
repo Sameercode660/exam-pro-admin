@@ -5,6 +5,7 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "@/context/AuthContext";
+import { downloadUploadSummaryExcel } from "@/lib/summary-download";
 
 const CreateParticipant: React.FC = () => {
   // Bulk Upload State (Individual fields)
@@ -38,7 +39,9 @@ const CreateParticipant: React.FC = () => {
     setExcelUploadLoading(true)
     try {
       const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/participants/create-participant-file`, formData);
-      toast.success(`participants created!`);
+      console.log(res.data);
+      downloadUploadSummaryExcel(res.data.summaryData, "Participants")
+      toast.success(`${res.data.inserted} participants created!`);
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Bulk upload failed.");
     } finally {

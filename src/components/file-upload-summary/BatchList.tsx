@@ -4,12 +4,15 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { downloadUploadSummaryExcel } from "@/lib/summary-download";
 import { useAuth } from "@/context/AuthContext";
+import { useParams } from "next/navigation";
+
+const UploadType = ["QUESTION_FILE", "PARTICIPANT_FILE", "PARTICIPANT_GROUP_ADD"]
 
 export default function BatchList() {
   const [batches, setBatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
-
+  const {typeId} = useParams();
   const organizationId = user?.organizationId;
 
   useEffect(() => {
@@ -20,7 +23,7 @@ export default function BatchList() {
           `${process.env.NEXT_PUBLIC_ROOT_URL}/file-upload-summary`,
           {
             organizationId,
-            type: "QUESTION_FILE",
+            type: UploadType[Number(typeId)],
           }
         );
         setBatches(res.data.batches || []);
@@ -48,7 +51,7 @@ export default function BatchList() {
         <p className="text-gray-500 italic">No batches found.</p>
       )}
 
-      <div className="space-y-3">
+      <div className="space-y-3 overflow-auto">
         {batches.map((batch) => (
           <div
             key={batch.batchId}

@@ -10,6 +10,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ExamListModal from './ExamListModal';
 import { useSocket } from '@/context/SocketContext';
+import { downloadUploadSummaryExcel } from '@/lib/summary-download';
 
 interface Group {
   id: number;
@@ -191,6 +192,8 @@ const GroupManagement = () => {
         }
       );
 
+      downloadUploadSummaryExcel(res.data.summaryData, "Group_Adding_participants")
+      console.log(res.data)
       const { addedNames, alreadyInGroupNames, unmatchedEmails } = res.data;
 
       // socket event 
@@ -199,7 +202,7 @@ const GroupManagement = () => {
       // if (addedNames.length > 0) toast.success(`Added: ${addedNames.join(", ")}`);
       // if (alreadyInGroupNames.length > 0) toast.info(`Already in group: ${alreadyInGroupNames.join(", ")}`);
       // if (unmatchedEmails.length > 0) toast.warning(`Not found in organization: ${unmatchedEmails.join(", ")}`);
-      toast.success("Participants added in the group")
+      toast.success(`${res.data.inserted} Participants added in the group`)
       setIsAddParticipantOpen(false);
       setUploadFile(null);
       setSelected([]);

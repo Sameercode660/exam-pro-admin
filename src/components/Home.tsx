@@ -25,9 +25,9 @@ function AdminDashboard({
 
   return (
     <>
-      <div className="flex h-screen bg-gray-100">
+      <div className="flex h-screen bg-gray-100 ">
         {/* Sidebar */}
-        <div className="w-64 bg-gray-800 text-white">
+        <div className="w-64 bg-gray-800 text-white overflow-auto">
           <nav className="mt-4">
             <ul>
               {
@@ -145,9 +145,9 @@ function AdminDashboard({
 
                            <li
                             className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
-                            onClick={() => navigation.push('/home/questions/upload-summary')}
+                            onClick={() => navigation.push(`/home/questions/upload-summary/${0}`)}
                           >
-                            File Upload Summary
+                            Question Upload Summary
                           </li>
                         </ul>
                       )}
@@ -187,6 +187,12 @@ function AdminDashboard({
                               </li>
                             ) : (<></>)
                           }
+                           <li
+                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                            onClick={() => navigation.push(`/home/questions/upload-summary/${2}`)}
+                          >
+                            Participant Added Summary
+                          </li>
                         </ul>
                       )}
 
@@ -238,6 +244,12 @@ function AdminDashboard({
                               </li>
                             </>) : (<></>)
                           }
+                           <li
+                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                            onClick={() => navigation.push(`/home/questions/upload-summary/${1}`)}
+                          >
+                            Participant Upload Summary
+                          </li>
                         </ul>
                       )}
 
