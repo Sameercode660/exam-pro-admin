@@ -96,7 +96,7 @@ function AddQuestion() {
       option2,
       option3,
       option4,
-      correctOption,
+      correctOption: Number(correctOption),
       difficultyLevel,
       adminId,
     };
