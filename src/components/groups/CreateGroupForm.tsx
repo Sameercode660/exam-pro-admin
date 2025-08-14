@@ -238,7 +238,7 @@ const CreateGroupForm = () => {
           {showButton && (
             <button
               type="button"
-              onClick={() => router.push(`/home/groups/${groupId}/1`)}
+              onClick={() => router.push(`/home/groups/${groupId}/${1}`)}
               className="bg-green-600 mr-3 hover:bg-green-700 text-white px-6 py-2 rounded-md disabled:opacity-50"
             >
               Add Participants

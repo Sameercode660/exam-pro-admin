@@ -45,8 +45,9 @@ function CreateExam() {
   const [justSelected, setJustSelected] = useState(false);
   const [keyboardNav, setKeyboardNav] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const [serverDate, setServerDate] = useState<string>('')
 
-  
+
 
   // keyboard vs mouse detection
   useEffect(() => {
@@ -66,6 +67,7 @@ function CreateExam() {
   useEffect(() => {
     generateExamCode();
     setMinDateTime(getCurrentDateTime());
+    fetchServerDate();
   }, []);
 
   useEffect(() => {
@@ -86,6 +88,11 @@ function CreateExam() {
     const randomCode = `EX-${Math.floor(100000 + Math.random() * 900000)}`;
     setExamCode(randomCode);
   };
+
+  const fetchServerDate = async () => {
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_ROOT_URL}/date-time`);
+    setServerDate(response.data.date)
+  }
 
   const getCurrentDateTime = () => {
     const now = new Date();
@@ -277,7 +284,7 @@ function CreateExam() {
                       }
                     }}
                     disabled={(date) => {
-                      const today = new Date()
+                      const today = new Date(serverDate)
                       today.setHours(0, 0, 0, 0) // reset to midnight
                       return date < today
                     }} // prevent past dates
