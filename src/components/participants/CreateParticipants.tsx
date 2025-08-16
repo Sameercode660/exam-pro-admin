@@ -28,7 +28,7 @@ const CreateParticipant: React.FC = () => {
   // Handle Bulk Upload
   const handleExcelUpload = async () => {
     if (!excelFile) {
-      toast.error("All bulk fields are required.");
+      toast.error("You haven't choosen a file");
       return;
     }
 
@@ -43,7 +43,7 @@ const CreateParticipant: React.FC = () => {
       downloadUploadSummaryExcel(res.data.summaryData, "Participants")
       toast.success(`${res.data.inserted} participants created!`);
     } catch (err: any) {
-      toast.error(err.response?.data?.error || "Bulk upload failed.");
+      toast.error(err.response?.data?.error || "Upload failed");
     } finally {
       setExcelUploadLoading(false)
     }
@@ -104,6 +104,7 @@ const CreateParticipant: React.FC = () => {
           accept=".xlsx, .xls"
           onChange={(e) => setExcelFile(e.target.files?.[0] || null)}
           className="w-full border p-2 rounded-md"
+          placeholder="Choose a file"
         />
 
         <button

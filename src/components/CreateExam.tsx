@@ -136,7 +136,7 @@ function CreateExam() {
 
         <div className='flex justify-between w-full gap-3'>
           <div className='w-[50%]'>
-            <label className="block text-sm font-semibold text-gray-600 mb-1">Duration (minutes) <span className="required text-red-400" aria-hidden="true">*</span></label>
+            <label className="block text-sm font-semibold text-gray-600 mb-1" >Duration (minutes) <span className="required text-red-400" aria-hidden="true">*</span></label>
             <input
               type="number"
               min={1}
