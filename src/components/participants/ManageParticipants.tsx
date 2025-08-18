@@ -33,6 +33,7 @@ const ManageParticipants = () => {
         { search, filter, organizationId, adminId }
       );
       setParticipants(res.data.participants);
+      console.log(res.data.participants)
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to fetch participants");
     }
@@ -178,6 +179,7 @@ const ManageParticipants = () => {
               <th className="px-4 py-3 text-left">Mobile</th>
               <th className="px-4 py-3 text-left">Approved</th>
               <th className="px-4 py-3 text-left">Created At</th>
+              <th className="px-4 py-3 text-left">BatchId</th>
               <th className="px-4 py-3 text-center">Actions</th>
             </tr>
           </thead>
@@ -201,7 +203,10 @@ const ManageParticipants = () => {
                       <span className="text-red-600 font-semibold">No</span>
                     )}
                   </td>
-                  <td className="p-3">{moment(p.createdAt).format("DD/MM/YYYY")}</td>
+                  <td className="p-3">
+                    {moment(p.createdAt).format("DD/MM/YYYY hh:mm A")}
+                  </td>
+                  <td className="p-3">{p.batchId}</td>
                   <td className="p-3 border space-x-4 text-center">
                     <button
                       className="text-yellow-600 hover:underline"

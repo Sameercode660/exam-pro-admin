@@ -49,6 +49,7 @@ const ManageGroups = () => {
         organizationId: viewType === 'all' ? organizationId : undefined,
       });
       setGroups(res.data);
+      console.log(res.data)
     } catch (err) {
       console.error('Failed to fetch groups', err);
     } finally {

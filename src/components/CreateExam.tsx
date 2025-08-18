@@ -5,9 +5,16 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
- 
+import Message from './utils/Message';
+import { MessageType } from './utils/Message';
+
+interface AppMessage {
+  type: MessageType;
+  text: string;
+}
+// import { toast, ToastContainer } from "react-toastify";
+// import "react-toastify/dist/ReactToastify.css";
+
 
 function CreateExam() {
   const [title, setTitle] = useState('');
@@ -18,6 +25,7 @@ function CreateExam() {
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [scheduleMode, setScheduleMode] = useState(false);
+  const [message, setMessage] = useState<AppMessage | null>(null)
 
   const [loading, setLoading] = useState(false);
   const [minDateTime, setMinDateTime] = useState('');
@@ -25,7 +33,7 @@ function CreateExam() {
   const { user } = useAuth();
   const router = useRouter();
   const adminId = user?.id;
- 
+
 
   useEffect(() => {
     generateExamCode();
@@ -89,7 +97,7 @@ function CreateExam() {
           startTime: response.data.response.startTime,
           endTime: response.data.response.endTime
         });
-      } else if(response.data.response.status == "Active") {
+      } else if (response.data.response.status == "Active") {
         await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/participants/my-group/exam/active-exam-schedule-activation`, {
           examId: response.data.response.id,
           endTime: response.data.response.endTime
@@ -97,11 +105,11 @@ function CreateExam() {
       }
 
 
-      
-      toast.success('Exam created successfully');
+
+      setMessage({ type: 'success', text: 'Exam created Successfully' });
       router.push('/home/exams/manage-exams');
     } catch (err: any) {
-      toast.error(err.response?.data?.message || err.message);
+      setMessage({ type: 'error', text: err.response?.data?.message || err.message });
     } finally {
       setLoading(false);
     }
@@ -109,6 +117,15 @@ function CreateExam() {
 
   return (
     <div className="bg-white p-8 rounded-2xl shadow-xl max-w-3xl mx-auto mt-10 space-y-6 border border-gray-200">
+      <div className='flex justify-center items-center'>
+        {message && (
+          <Message
+            type={message.type}
+            text={message.text}
+            onClose={() => setMessage(null)} 
+          />
+        )}
+      </div>
       <h2 className="text-2xl font-bold text-gray-800">Create New Exam</h2>
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -205,7 +222,7 @@ function CreateExam() {
           {loading ? 'Creating...' : 'Create Exam'}
         </button>
       </form>
-      <ToastContainer />
+      {/* <ToastContainer /> */}
     </div>
   );
 }

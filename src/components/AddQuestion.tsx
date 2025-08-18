@@ -140,12 +140,15 @@ function AddQuestion() {
         </p>
 
         <div className="flex flex-col md:flex-row gap-4">
-          <input
-            type="file"
-            accept=".xlsx, .xls"
-            onChange={handleFileChange}
-            className="w-full md:w-2/3 px-4 py-2 border rounded-xl focus:outline-none"
-          />
+          <label className="w-full md:w-2/3 px-4 py-2 border rounded-xl bg-gray-50 hover:bg-gray-100 cursor-pointer text-gray-600 truncate">
+            {file ? file.name : "Please choose a file"}
+            <input
+              type="file"
+              accept=".xlsx, .xls"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+          </label>
           <button
             type="button"
             onClick={handleFileUpload}

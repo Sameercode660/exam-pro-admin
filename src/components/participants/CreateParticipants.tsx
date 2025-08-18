@@ -99,13 +99,17 @@ const CreateParticipant: React.FC = () => {
             📥 Download Excel Sample
           </button>
         </div>
-        <input
-          type="file"
-          accept=".xlsx, .xls"
-          onChange={(e) => setExcelFile(e.target.files?.[0] || null)}
-          className="w-full border p-2 rounded-md"
-          placeholder="Choose a file"
-        />
+        <div>
+          <label className="block w-full border p-2 rounded-md cursor-pointer bg-gray-50 hover:bg-gray-100 text-gray-600">
+            {excelFile ? excelFile.name : "Please choose a file"}
+            <input
+              type="file"
+              accept=".xlsx, .xls"
+              onChange={(e) => setExcelFile(e.target.files?.[0] || null)}
+              className="hidden"
+            />
+          </label>
+        </div>
 
         <button
           onClick={handleExcelUpload}

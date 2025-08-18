@@ -139,8 +139,29 @@ const CreateAdmin = () => {
           ))}
         </select>
 
-        <input className="input" type="text" name="orgCountryCode" value={form.orgCountryCode} placeholder="Country Code" readOnly />
-        <input className="input" type="text" name="orgPhone" placeholder="Organization Phone " onChange={handleChange} />
+        <div className="flex items-center border rounded-md w-full overflow-hidden">
+          {/* + sign */}
+          <span className="px-2 text-gray-500">+</span>
+
+          {/* Country code (small, readOnly) */}
+          <input
+            className="w-14 outline-none bg-transparent text-gray-700"
+            type="text"
+            name="orgCountryCode"
+            value={form.orgCountryCode}
+            readOnly
+          />
+
+          {/* Phone number (expands) */}
+          <input
+            className="flex-1 outline-none bg-transparent px-2"
+            type="text"
+            name="orgPhone"
+            placeholder="Organization Phone"
+            onChange={handleChange}
+          />
+        </div>
+
         <input className="input" type="text" name="orgAddress" placeholder="Address" onChange={handleChange} />
         {/* Admin Info */}
         <input className="input" type="text" name="name" placeholder="Admin Name" value={form.name} onChange={handleNameChange} />

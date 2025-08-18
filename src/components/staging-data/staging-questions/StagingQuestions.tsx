@@ -10,15 +10,19 @@ const STAGING_STATUSES = ["PENDING", "VALID", "INVALID", "DUPLICATE", "IMPORTED"
 interface UploadTimestamp {
   raw: string;
   formatted: string;
+  batchId: number
 }
 
 export default function StagingQuestions() {
   const [uploadTimestamps, setUploadTimestamps] = useState<UploadTimestamp[]>([]);
-  const [selectedTimestamp, setSelectedTimestamp] = useState("");
+  const [selectedTimestamp, setSelectedTimestamp] = useState<string | null>("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [tableData, setTableData] = useState<Record<string, any>[]>([]);
   const { user } = useAuth();
   const organizationId = user?.organizationId;
+  const [selectedBatchId, setSelectedBatchId] = useState<string | null>('')
+  const [selectedValue, setSelectedValue] = useState("");
+
 
   const fetchTimestamps = async () => {
     try {
@@ -27,6 +31,7 @@ export default function StagingQuestions() {
       });
 
       const data = res.data?.uploadTimestamps;
+      console.log(res.data.uploadTimestamps)
       if (Array.isArray(data)) {
         setUploadTimestamps(data);
       } else {
@@ -44,7 +49,7 @@ export default function StagingQuestions() {
       const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/staging-data/staging-question/fetch-questions`, {
         organizationId,
         status: selectedStatus || undefined,
-        uploadTimestamp: selectedTimestamp || undefined,
+        batchId: Number(selectedBatchId) || undefined,
       });
 
       console.log(res.data.data)
@@ -58,6 +63,7 @@ export default function StagingQuestions() {
 
       const mapped = responseData.map((item: any) => ({
         ID: item.id,
+        BatchId: item.batchId,
         Category: item.categoryName,
         Topic: item.topicName,
         Question: item.question,
@@ -118,14 +124,30 @@ export default function StagingQuestions() {
         </select>
 
         <select
-          value={selectedTimestamp}
-          onChange={(e) => setSelectedTimestamp(e.target.value)}
+          value={selectedValue}
+          onChange={(e) => {
+            const value = e.target.value;
+            setSelectedValue(value);
+
+            if (value) {
+              const { batchId, raw } = JSON.parse(value);
+              setSelectedBatchId(batchId);
+              setSelectedTimestamp(raw);
+            } else {
+              // reset if "Filter by BatchId" is chosen
+              setSelectedBatchId(null);
+              setSelectedTimestamp(null);
+            }
+          }}
           className="p-2 border rounded"
         >
-          <option value="">Filter by Upload Timestamp</option>
+          <option value="">Filter by BatchId</option>
           {uploadTimestamps.map((ts, idx) => (
-            <option key={idx} value={ts.raw}>
-              {ts.formatted}
+            <option
+              key={idx}
+              value={JSON.stringify({ batchId: ts.batchId, raw: ts.raw })}
+            >
+              {`batchId-${ts.batchId} - ${ts.formatted}`}
             </option>
           ))}
         </select>
@@ -141,6 +163,7 @@ export default function StagingQuestions() {
       <DynamicTable
         columns={[
           "ID",
+          "BatchId",
           "Category",
           "Topic",
           "Question",

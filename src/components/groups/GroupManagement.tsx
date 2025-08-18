@@ -251,7 +251,7 @@ const GroupManagement = () => {
       });
 
       // socket event 
-      
+
       socket?.emit('add-participant-admin', 'added')
       const { addedCount, skippedParticipants } = res.data;
       if (addedCount > 0) toast.success(`${addedCount} participant(s) added successfully.`);
@@ -340,7 +340,20 @@ const GroupManagement = () => {
             <Dialog.Title className="text-lg font-bold mb-4">Manage Participants</Dialog.Title>
 
             <div className='flex mb-4'>
-              <input type="file" accept=".xlsx, .csv" onChange={(e) => setUploadFile(e.target.files?.[0] || null)} className="border rounded p-2 w-full" />
+              <label className="flex items-center justify-between w-full md:w-2/3 px-4 py-2 border rounded-xl bg-white hover:bg-gray-50 cursor-pointer text-gray-600 truncate">
+                {/* Show file name or placeholder */}
+                <span className="truncate">
+                  {uploadFile ? uploadFile.name : "Please choose a file"}
+                </span>
+
+                {/* Hidden input field */}
+                <input
+                  type="file"
+                  accept=".xlsx, .xls"
+                  onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                  className="hidden"
+                />
+              </label>
               <button onClick={handleUploadExcel} className="rounded h-[40px] px-5 bg-green-500 text-white mx-3">
                 Upload
               </button>
