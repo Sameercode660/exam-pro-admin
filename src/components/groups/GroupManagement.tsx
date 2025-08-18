@@ -11,6 +11,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import ExamListModal from './ExamListModal';
 import { useSocket } from '@/context/SocketContext';
 import { downloadUploadSummaryExcel } from '@/lib/summary-download';
+import BatchSummaryPupup from '../utils/BatchSummaryPupup';
 
 interface Group {
   id: number;
@@ -56,6 +57,15 @@ const GroupManagement = () => {
   // socket
   const socket = useSocket();
 
+  const [open, setOpen] = useState(false);
+  const [batchData, setBatchData] = useState({
+    batchId: 0,
+    batchStatus: "FAILED",
+    failed: 0,
+    inserted: 0,
+    message: "Upload completed",
+    skipped: 0,
+  });
 
   // fetch remove participants
   const fetchRemovedParticipants = async () => {
@@ -194,6 +204,16 @@ const GroupManagement = () => {
 
       downloadUploadSummaryExcel(res.data.summaryData, "Group_Adding_participants")
       console.log(res.data)
+      setOpen(true)
+      setBatchData({
+        batchId: res.data.batchId,
+        batchStatus: res.data.batchStatus,
+        failed: res.data.failed,
+        inserted: res.data.inserted,
+        message: res.data.message,
+        skipped: res.data.skipped,
+      })
+
       const { addedNames, alreadyInGroupNames, unmatchedEmails } = res.data;
 
       // socket event 
@@ -291,6 +311,11 @@ const GroupManagement = () => {
 
   return (
     <div className="min-h-screen p-8 bg-gradient-to-b from-gray-50 via-white to-gray-100 flex flex-col items-center">
+      <BatchSummaryPupup
+        data={batchData}
+        isOpen={open}
+        onClose={() => setOpen(false)}
+      />
       <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl p-8 mb-8">
         {loading ? (
           <div className="text-gray-500 text-center animate-pulse">Loading group details...</div>
@@ -343,7 +368,7 @@ const GroupManagement = () => {
               <label className="flex items-center justify-between w-full md:w-2/3 px-4 py-2 border rounded-xl bg-white hover:bg-gray-50 cursor-pointer text-gray-600 truncate">
                 {/* Show file name or placeholder */}
                 <span className="truncate">
-                  {uploadFile ? uploadFile.name : "Please choose a file"}
+                  {uploadFile ? uploadFile.name : "Select a file for upload"}
                 </span>
 
                 {/* Hidden input field */}

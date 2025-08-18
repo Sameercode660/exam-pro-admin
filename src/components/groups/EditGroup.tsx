@@ -10,7 +10,7 @@ const EditGroup = ({ groupId, onClose, onSuccess }: { groupId: number, onClose: 
   const [groupData, setGroupData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{ type: 'success' | 'error', message: string } | null>(null);
-  const {user} = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchGroup = async () => {
@@ -80,21 +80,18 @@ const EditGroup = ({ groupId, onClose, onSuccess }: { groupId: number, onClose: 
           value={groupData.description}
           onChange={handleChange}
         />
-        <input
-          className="w-full mb-2 border px-3 py-2 rounded"
-          name="startDate"
-          type="date"
-          value={groupData.startDate.split('T')[0]}
-          onChange={handleChange}
-        />
+        <p className="w-full mb-2 border px-3 py-2 rounded">
+          {groupData.startDate.split("T")[0]}
+        </p>
         <input
           className="w-full mb-4 border px-3 py-2 rounded"
           name="endDate"
           type="date"
-          value={groupData.endDate.split('T')[0]}
+          value={groupData.endDate.split("T")[0]}
           onChange={handleChange}
+          onFocus={(e) => (e.target as HTMLInputElement).showPicker()}
+          // onMouseEnter={(e) => (e.target as HTMLInputElement).showPicker()}
         />
-
         <div className="flex justify-end gap-3">
           <button
             className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"

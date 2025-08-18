@@ -6,6 +6,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "@/context/AuthContext";
 import { downloadUploadSummaryExcel } from "@/lib/summary-download";
+import BatchSummaryPupup from "../utils/BatchSummaryPupup";
 
 const CreateParticipant: React.FC = () => {
   // Bulk Upload State (Individual fields)
@@ -24,7 +25,15 @@ const CreateParticipant: React.FC = () => {
   const [email, setEmail] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
 
-
+  const [open, setOpen] = useState(false);
+  const [batchData, setBatchData] = useState({
+    batchId: 0,
+    batchStatus: "FAILED",
+    failed: 0,
+    inserted: 0,
+    message: "Upload completed",
+    skipped: 0,
+  });
   // Handle Bulk Upload
   const handleExcelUpload = async () => {
     if (!excelFile) {
@@ -41,6 +50,15 @@ const CreateParticipant: React.FC = () => {
       const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/participants/create-participant-file`, formData);
       console.log(res.data);
       downloadUploadSummaryExcel(res.data.summaryData, "Participants")
+      setOpen(true)
+      setBatchData({
+        batchId: res.data.batchId,
+        batchStatus: res.data.batchStatus,
+        failed: res.data.failed,
+        inserted: res.data.inserted,
+        message: res.data.message,
+        skipped: res.data.skipped,
+      })
       toast.success(`${res.data.inserted} participants created!`);
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Upload failed");
@@ -85,6 +103,11 @@ const CreateParticipant: React.FC = () => {
 
   return (
     <div className="max-w-2xl mx-auto p-6 mt-10 bg-white shadow-lg rounded-xl border space-y-8">
+      <BatchSummaryPupup
+        data={batchData}
+        isOpen={open}
+        onClose={() => setOpen(false)}
+      />
       <h2 className="text-2xl font-bold text-center text-gray-800">Participant Creation</h2>
 
       {/* Bulk Upload */}
@@ -101,7 +124,7 @@ const CreateParticipant: React.FC = () => {
         </div>
         <div>
           <label className="block w-full border p-2 rounded-md cursor-pointer bg-gray-50 hover:bg-gray-100 text-gray-600">
-            {excelFile ? excelFile.name : "Please choose a file"}
+            {excelFile ? excelFile.name : "Select a file for upload"}
             <input
               type="file"
               accept=".xlsx, .xls"

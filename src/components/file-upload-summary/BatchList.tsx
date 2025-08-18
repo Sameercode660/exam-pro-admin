@@ -40,7 +40,7 @@ export default function BatchList() {
     <div className="p-6 bg-white rounded-xl shadow-md max-w-3xl mx-auto">
       {/* Heading */}
       <h1 className="text-2xl font-bold text-gray-800 mb-6">
-        📦 Uploaded Question Batches
+        {Number(typeId) == 0 ? "📦 Uploaded Questions Batches" : Number(typeId) == 1 ? "📦 Uploaded Partcipants Batches" : "📦 Uploaded Added Group Participant Batches"}
       </h1>
 
       {loading && (

@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { downloadUploadSummaryExcel } from '@/lib/summary-download';
+import BatchSummaryPupup from './utils/BatchSummaryPupup';
 
 function AddQuestion() {
   const [loading, setLoading] = useState(false);
@@ -25,6 +26,16 @@ function AddQuestion() {
   const { user } = useAuth();
   const adminId = user?.id;
   const router = useRouter();
+
+  const [open, setOpen] = useState(false);
+  const [batchData, setBatchData] = useState({
+    batchId: 0,
+    batchStatus: "FAILED",
+    failed: 0,
+    inserted: 0,
+    message: "Upload completed",
+    skipped: 0,
+  });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -56,8 +67,18 @@ function AddQuestion() {
 
       console.log(response.data);
       downloadUploadSummaryExcel(response.data.summaryData, "Question");
+      setOpen(true)
+      setBatchData({
+        batchId: response.data.batchId,
+        batchStatus: response.data.batchStatus,
+        failed: response.data.failed,
+        inserted: response.data.inserted,
+        message: response.data.message,
+        skipped: response.data.skipped,
+      })
+
       toast.success('File uploaded successfully');
-      router.push('/home/questions/manage-questions');
+      // router.push('/home/questions/manage-questions');
     } catch (error) {
       console.log(error)
       toast.error('Error uploading file');
@@ -117,6 +138,12 @@ function AddQuestion() {
 
   return (
     <div className="bg-white p-8 rounded-2xl shadow-xl max-w-3xl mx-auto mt-10 space-y-8 border border-gray-200">
+      <BatchSummaryPupup
+        data={batchData}
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        redirectPath='/home/questions/manage-questions'
+      />
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Add Questions</h2>
 
@@ -141,7 +168,7 @@ function AddQuestion() {
 
         <div className="flex flex-col md:flex-row gap-4">
           <label className="w-full md:w-2/3 px-4 py-2 border rounded-xl bg-gray-50 hover:bg-gray-100 cursor-pointer text-gray-600 truncate">
-            {file ? file.name : "Please choose a file"}
+            {file ? file.name : "Select a file for upload"}
             <input
               type="file"
               accept=".xlsx, .xls"

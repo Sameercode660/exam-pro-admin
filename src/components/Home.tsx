@@ -60,97 +60,7 @@ function AdminDashboard({
                 </li>) :
                   (
                     <div>
-                      <li
-                        className="py-2 px-4 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
-                        onClick={() => setOpenExamMenu(prev => !prev)}
-                      >
-                        Exams
-                        {openExamMenu ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-                      </li>
-                      {openExamMenu && (
-                        <ul className="ml-4">
-                          {/* create exam  */}
-                          <li
-                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer}`}
-                            onClick={() => navigation.push('/home/exams/create-exams')}
-                          >
-                            Create Exam
-                          </li>
 
-                          {/* manage exam  */}
-                          <li
-                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer}`}
-                            onClick={() => navigation.push('/home/exams/manage-exams')}
-                          >
-                            Manage Exam
-                          </li>
-
-                          {
-                            user?.role == Roles.admin ? (
-                              <li
-                                className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
-                                onClick={() => navigation.push('/home/removed-data/remove-exams')}
-                              >
-                                Removed Exams
-                              </li>
-                            ) : (<></>)
-                          }
-                        </ul>
-                      )}
-
-                      {/* Question menu  */}
-
-                      <li
-                        className="py-2 px-4 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
-                        onClick={() => setOpenQuestionMenu(prev => !prev)}
-                      >
-                        Questions
-                        {openQuestionMenu ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-                      </li>
-                      {openQuestionMenu && (
-                        <ul className="ml-4">
-                          {/* create exam  */}
-                          <li
-                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
-                            onClick={() => navigation.push('/home/questions/create-questions')}
-                          >
-                            Create Questions
-                          </li>
-
-                          {/* manage questions */}
-                          <li
-                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
-                            onClick={() => navigation.push('/home/questions/manage-questions')}
-                          >
-                            Manage Questions
-                          </li>
-
-                          <li
-                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
-                            onClick={() => navigation.push('/home/staging-data/staging-questions')}
-                          >
-                            Staging Questions
-                          </li>
-
-                          {
-                            user?.role == Roles.admin ? (
-                              <li
-                                className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
-                                onClick={() => navigation.push('/home/removed-data/removed-questions')}
-                              >
-                                Removed Questions
-                              </li>
-                            ) : (<></>)
-                          }
-
-                           <li
-                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
-                            onClick={() => navigation.push(`/home/questions/upload-summary/${0}`)}
-                          >
-                            Question Upload Summary
-                          </li>
-                        </ul>
-                      )}
                       {/* //  groups menu  */}
 
                       <li
@@ -187,7 +97,7 @@ function AdminDashboard({
                               </li>
                             ) : (<></>)
                           }
-                           <li
+                          <li
                             className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
                             onClick={() => navigation.push(`/home/questions/upload-summary/${2}`)}
                           >
@@ -196,7 +106,8 @@ function AdminDashboard({
                         </ul>
                       )}
 
-
+                      {/* ends group menue */}
+                      {/* start participant menu  */}
                       <li
                         className="py-2 px-4 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
                         onClick={() => setOpenParticipantMenu(prev => !prev)}
@@ -244,7 +155,7 @@ function AdminDashboard({
                               </li>
                             </>) : (<></>)
                           }
-                           <li
+                          <li
                             className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
                             onClick={() => navigation.push(`/home/questions/upload-summary/${1}`)}
                           >
@@ -252,6 +163,104 @@ function AdminDashboard({
                           </li>
                         </ul>
                       )}
+                      {/* ends particpant menu  */}
+                      {/* starts  exam menu  */}
+                      <li
+                        className="py-2 px-4 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
+                        onClick={() => setOpenExamMenu(prev => !prev)}
+                      >
+                        Exams
+                        {openExamMenu ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                      </li>
+                      {openExamMenu && (
+                        <ul className="ml-4">
+                          {/* create exam  */}
+                          <li
+                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer}`}
+                            onClick={() => navigation.push('/home/exams/create-exams')}
+                          >
+                            Create Exam
+                          </li>
+
+                          {/* manage exam  */}
+                          <li
+                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer}`}
+                            onClick={() => navigation.push('/home/exams/manage-exams')}
+                          >
+                            Manage Exam
+                          </li>
+
+                          {
+                            user?.role == Roles.admin ? (
+                              <li
+                                className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                                onClick={() => navigation.push('/home/removed-data/remove-exams')}
+                              >
+                                Removed Exams
+                              </li>
+                            ) : (<></>)
+                          }
+                        </ul>
+                      )}
+
+                      {/* ends exam menu  */}
+
+                      {/* Question menu  */}
+
+                      <li
+                        className="py-2 px-4 flex items-center justify-between hover:bg-gray-700 cursor-pointer"
+                        onClick={() => setOpenQuestionMenu(prev => !prev)}
+                      >
+                        Questions
+                        {openQuestionMenu ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                      </li>
+                      {openQuestionMenu && (
+                        <ul className="ml-4">
+                          {/* create exam  */}
+                          <li
+                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                            onClick={() => navigation.push('/home/questions/create-questions')}
+                          >
+                            Create Questions
+                          </li>
+
+                          {/* manage questions */}
+                          <li
+                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                            onClick={() => navigation.push('/home/questions/manage-questions')}
+                          >
+                            Manage Questions
+                          </li>
+
+                          <li
+                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                            onClick={() => navigation.push('/home/staging-data/staging-questions')}
+                          >
+                            Staging Questions
+                          </li>
+
+                          {
+                            user?.role == Roles.admin ? (
+                              <li
+                                className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                                onClick={() => navigation.push('/home/removed-data/removed-questions')}
+                              >
+                                Removed Questions
+                              </li>
+                            ) : (<></>)
+                          }
+
+                          <li
+                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                            onClick={() => navigation.push(`/home/questions/upload-summary/${0}`)}
+                          >
+                            Question Upload Summary
+                          </li>
+                        </ul>
+                      )}
+                      {/* ends question menu  */}
+
+
 
                       {/* word cloud  */}
                       {/* <li
