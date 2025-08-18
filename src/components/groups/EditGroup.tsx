@@ -35,6 +35,21 @@ const EditGroup = ({
   const [justSelected, setJustSelected] = useState(false);
   const [keyboardNav, setKeyboardNav] = useState(false);
 
+  const [serverDate, setServerDate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    const fetchServerDate = async () => {
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_ROOT_URL}/date-time`);
+        const utcDate = new Date(res.data.date); // UTC from server
+        setServerDate(utcDate); // store as Date (UTC)
+      } catch (err) {
+        console.error("Failed to fetch server date", err);
+      }
+    };
+    fetchServerDate();
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Tab") {
@@ -73,6 +88,11 @@ const EditGroup = ({
   }, [groupId]);
 
   const handleUpdate = async () => {
+
+    if (serverDate && groupData.endDate && new Date(groupData.endDate) < serverDate) {
+      setToast({ type: "error", message: "End date cannot be earlier than today" });
+      return;
+    }
     setLoading(true);
     try {
       await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/groups/update`, {
@@ -174,16 +194,16 @@ const EditGroup = ({
                 onSelect={(date) => {
                   if (date) {
                     handleChange("endDate", format(date, "yyyy-MM-dd"));
-                    setJustSelected(true); // mark we just picked
+                    setJustSelected(true);
                     setOpen(false);
-
-                    // ✅ blur button so focus doesn’t reopen
                     buttonRef.current?.blur();
                   }
                 }}
-                disabled={(date) =>
-                  groupData.startDate ? date < new Date(groupData.startDate) : false
-                }
+                disabled={(date) => {
+                  if (!serverDate) return false;
+                  const startLimit = groupData.startDate ? new Date(groupData.startDate) : null;
+                  return date < serverDate || (startLimit ? date < startLimit : false);
+                }}
               />
             </PopoverContent>
           </Popover>
