@@ -47,23 +47,31 @@ function ManageExam() {
   const fetchExams = async () => {
     try {
       setLoading(true);
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/exams/fetch-all-exam`, { adminId });
-      setExams(response.data.response);
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_ROOT_URL}/exams/fetch-all-exam`,
+        { adminId }
+      );
+      setExams(Array.isArray(response.data?.response) ? response.data.response : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
+      setExams([]); // fallback
     } finally {
       setLoading(false);
     }
   };
 
   const handleSearch = async () => {
-    if (!searchQuery) return alert('Input text to search');
+    if (!searchQuery.trim()) return alert('Input text to search');
     try {
       setLoading(true);
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/exams/exam-search`, { query: searchQuery });
-      setExams(response.data.results);
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_ROOT_URL}/exams/exam-search`,
+        { query: searchQuery }
+      );
+      setExams(Array.isArray(response.data?.results) ? response.data.results : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
+      setExams([]); // fallback
     } finally {
       setLoading(false);
     }
@@ -87,7 +95,14 @@ function ManageExam() {
   };
 
   useEffect(() => {
-    fetchExams();
+    let mounted = true;
+    const init = async () => {
+      if (mounted) await fetchExams();
+    };
+    init();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   if (loading) return <div className="p-6 text-center">Loading exams...</div>;
@@ -113,7 +128,7 @@ function ManageExam() {
         </div>
       </div>
 
-      {exams.length === 0 ? (
+      {(!exams || exams.length === 0) ? (
         <p className="text-center text-gray-500">No exams found.</p>
       ) : (
         <div className="space-y-4">
@@ -124,13 +139,13 @@ function ManageExam() {
                   onClick={() => router.push(`/home/exams/exam-details/${exam.id}`)}
                   className="text-xl font-bold text-blue-600 underline cursor-pointer"
                 >
-                  {exam.title.toUpperCase()}
+                  {(exam.title || '').toUpperCase()}
                 </h2>
-                <p className="text-gray-600 font-medium">{exam.description}</p>
+                <p className="text-gray-600 font-medium">{exam.description || 'No description'}</p>
                 <div className="flex flex-wrap gap-3">
                   <span className="bg-gray-100 px-3 py-1 rounded-full text-sm text-gray-700">{exam.examCode}</span>
                   <span className="bg-gray-100 px-3 py-1 rounded-full text-sm text-gray-700">{exam.duration} min</span>
-                  {exam.status === "Scheduled" ? (
+                  {exam.status === 'Scheduled' && exam.startTime && exam.endTime ? (
                     <div className="flex flex-col text-sm bg-yellow-100 text-yellow-800 rounded px-2 py-1 font-semibold">
                       <span>Scheduled</span>
                       <span>
@@ -140,10 +155,13 @@ function ManageExam() {
                   ) : (
                     <span
                       className={`px-3 py-1 text-sm rounded-full font-semibold text-white ${
-                        exam.status === "Active" ? 'bg-green-500' :
-                        exam.status === "Inactive" ? 'bg-gray-400' :
-                        exam.status === "Completed" ? 'bg-blue-500' :
-                        'bg-gray-300'
+                        exam.status === 'Active'
+                          ? 'bg-green-500'
+                          : exam.status === 'Inactive'
+                          ? 'bg-gray-400'
+                          : exam.status === 'Completed'
+                          ? 'bg-blue-500'
+                          : 'bg-gray-300'
                       }`}
                     >
                       {exam.status}
