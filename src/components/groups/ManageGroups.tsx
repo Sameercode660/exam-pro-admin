@@ -20,6 +20,9 @@ interface Group {
     name: string;
   };
   createdAt: string;
+  _count: {
+    participants: number;
+  }
 }
 
 const ManageGroups = () => {
@@ -152,6 +155,7 @@ const ManageGroups = () => {
               <tr>
                 <th className="px-4 py-3 text-left">Name</th>
                 <th className="px-4 py-3 text-left">Description</th>
+                <th className="px-4 py-3 text-left">Added Participants</th>
                 <th className="px-4 py-3 text-left">Start Date</th>
                 <th className="px-4 py-3 text-left">End Date</th>
                 <th className="px-4 py-3 text-left">Status</th>
@@ -164,9 +168,14 @@ const ManageGroups = () => {
               {groups.map((group) => (
                 <tr key={group.id} className="hover:bg-gray-100 border-b">
                   <td className="px-4 py-2 underline text-blue-400 cursor-pointer" onClick={() => {
-                    router.push(`/home/groups/${group.id}`)
+                    router.push(`/home/groups/${group.id}/${0}`)
                   }} >{group.name.toUpperCase()}</td>
                   <td className="px-4 py-2">{group.description}</td>
+                  <td className="px-4 py-2 flex justify-center items-center text-blue-500 underline cursor-pointer"
+                    onClick={() => {
+                      router.push(`/home/groups/${group.id}/${1}`)
+                    }}
+                  >{group._count.participants}</td>
                   <td className="px-4 py-2">{new Date(group.startDate).toLocaleDateString('en-GB')}</td>
                   <td className="px-4 py-2">{new Date(group.endDate).toLocaleDateString('en-GB')}</td>
                   <td className="px-4 py-2">{group.isActive ? 'Active' : 'Inactive'}</td>

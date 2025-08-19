@@ -35,7 +35,8 @@ const GroupManagement = () => {
   const organizationId = user?.organizationId;
   const adminId = user?.id;
 
-  const { groupId } = useParams();
+  const { groupId, openDialog } = useParams();
+  const [openDialogState, setOpenDialogState] = useState((() => (Number(openDialog) == 1 ? true : false))())
   const [group, setGroup] = useState<Group | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -150,7 +151,7 @@ const GroupManagement = () => {
 
 
   useEffect(() => {
-    if (isAddParticipantOpen) {
+    if (isAddParticipantOpen || openDialogState) {
       fetchParticipants();
       fetchGroupParticipants();
     }
@@ -359,9 +360,12 @@ const GroupManagement = () => {
       </div>
 
       {/* Participants Modal */}
-      <Dialog open={isAddParticipantOpen} onClose={() => setIsAddParticipantOpen(false)} className="relative z-50">
+      <Dialog open={isAddParticipantOpen || openDialogState} onClose={() => {
+        setOpenDialogState(false);
+        setIsAddParticipantOpen(false)
+      }} className="relative z-50">
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4">
-          <Dialog.Panel className="bg-white rounded-xl shadow-lg max-w-xl w-full p-6">
+          <Dialog.Panel className="bg-white rounded-xl shadow-lg max-w-xl w-full p-6 max-h-[80vh] overflow-y-auto">
             <Dialog.Title className="text-lg font-bold mb-4">Manage Participants</Dialog.Title>
 
             <div className='flex mb-4'>
@@ -441,7 +445,7 @@ const GroupManagement = () => {
               </button>
             </div>
 
-            <div className="mt-6">
+            <div className="  mt-6 ">
               <h3 className="font-bold mb-2">Current Group Participants</h3>
               <button
                 onClick={fetchRemovedParticipants}
@@ -449,7 +453,7 @@ const GroupManagement = () => {
               >
                 Removed Participants
               </button>
-              <div className="space-y-2">
+              <div className="space-y-2 h-60 overflow-y-auto">
                 {groupParticipants.length === 0 ? (
                   <div className="text-center text-gray-400">No participants in this group.</div>
                 ) : (

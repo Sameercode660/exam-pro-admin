@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Divide, Loader2 } from 'lucide-react';
 import Message from './utils/Message';
 import { MessageType } from './utils/Message';
 
@@ -122,7 +122,7 @@ function CreateExam() {
           <Message
             type={message.type}
             text={message.text}
-            onClose={() => setMessage(null)} 
+            onClose={() => setMessage(null)}
           />
         )}
       </div>
@@ -164,7 +164,7 @@ function CreateExam() {
             />
           </div>
 
-          {!scheduleMode && (
+          {!scheduleMode ? (
             <div className='w-[50%]'>
               <label className="block text-sm font-semibold text-gray-600 mb-1">Status <span className="required text-red-400" aria-hidden="true">*</span></label>
               <select
@@ -177,7 +177,21 @@ function CreateExam() {
                 <option value="Inactive">Inactive</option>
               </select>
             </div>
+          ) : (<div className='w-[50%]'>
+            <label className="block text-sm font-semibold text-gray-600 mb-1">
+              Status <span className="required text-red-400" aria-hidden="true">*</span>
+            </label>
+            <input
+              type="text"
+              value="Scheduled"
+              disabled
+              readOnly
+              className="w-full px-4 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-400"
+              required
+            />
+          </div>
           )}
+
         </div>
 
         <div className="flex items-center space-x-3">

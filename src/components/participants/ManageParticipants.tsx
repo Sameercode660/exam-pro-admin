@@ -53,7 +53,7 @@ const ManageParticipants = () => {
         `${process.env.NEXT_PUBLIC_ROOT_URL}/participants/delete-participant`,
         { participantId: id, adminId: user?.id }
       );
-      toast.success("Participant deleted");
+      // toast.success("Participant deleted");
       fetchParticipants();
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Delete failed.");
@@ -156,7 +156,7 @@ const ManageParticipants = () => {
       <div className="flex items-center space-x-2">
         <input
           type="text"
-          placeholder="Search participants..."
+          placeholder="Search participants by name, email, mobile and batchId..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full border p-2 rounded-md"

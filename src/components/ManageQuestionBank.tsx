@@ -207,19 +207,20 @@ const ManageQuestionBank = () => {
           <option value="MEDIUM">Medium</option>
           <option value="HARD">Hard</option>
         </select>
+        <select
+          value={selectedBatchId || ''}
+          onChange={(e) => setSelectedBatchId(Number(e.target.value) || null)}
+          className="p-2 border rounded"
+        >
+          <option value="">Select Batch</option>
+          {batches.map((batch: any) => (
+            <option key={batch.batchId} value={batch.batchId}>
+              {`BatchId-${batch.batchId} - (${new Date(batch.batch.uploadedAt).toLocaleString()})`}
+            </option>
+          ))}
+        </select>
       </div>
-      <select
-        value={selectedBatchId || ''}
-        onChange={(e) => setSelectedBatchId(Number(e.target.value) || null)}
-        className="p-2 border rounded"
-      >
-        <option value="">Select Batch</option>
-        {batches.map((batch: any) => (
-          <option key={batch.batchId} value={batch.batchId}>
-            {`${batch.batchId} - (${new Date(batch.batch.uploadedAt).toLocaleString()})`}
-          </option>
-        ))}
-      </select>
+
 
       {/* Question List */}
       {!loading && !error && questions.length > 0 && (

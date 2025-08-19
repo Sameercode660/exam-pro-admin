@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 const CreateGroupForm = () => {
   const { user } = useAuth();
@@ -14,6 +15,9 @@ const CreateGroupForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showButton, setShowButton] = useState<boolean>(false);
+  const [groupId, setGroupId] = useState<number>(0);
+  const router = useRouter();
 
   // Set default start date to today on load
   useEffect(() => {
@@ -40,7 +44,7 @@ const CreateGroupForm = () => {
     setLoading(true);
     setError(null);
     setSuccess(null);
-
+    setShowButton(false);
     const todayDate = new Date();
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -82,6 +86,9 @@ const CreateGroupForm = () => {
         groupId: res.data.group.id,
         endDate: res.data.group.endDate
       })
+
+      setShowButton(true);
+      setGroupId(res.data.group.id);
       setSuccess('Group created successfully!');
       resetForm();
     } catch (err: any) {
@@ -141,6 +148,7 @@ const CreateGroupForm = () => {
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
+              onFocus={(e) => (e.target as HTMLInputElement).showPicker()}
               className="w-full border px-4 py-2 rounded-md focus:ring focus:ring-blue-200"
               required
             />
@@ -148,6 +156,17 @@ const CreateGroupForm = () => {
         </div>
 
         <div className="text-right">
+          {
+            showButton && <button
+            type="button"
+            onClick={() => {
+              router.push(`/home/groups/${groupId}/${1}`)
+            }}
+            className="bg-green-600 mr-3 hover:bg-blue-700 text-white px-6 py-2 rounded-md disabled:opacity-50"
+          >
+            Add Participants
+          </button>
+          }
           <button
             type="button"
             onClick={handleSubmit}
