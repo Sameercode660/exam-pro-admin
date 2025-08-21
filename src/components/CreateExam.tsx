@@ -88,8 +88,9 @@ function CreateExam() {
         createdByAdminId: adminId,
       };
 
-      if(payload.startTime && (new Date(payload.startTime) < new Date(serverDate))) {
-        alert('Date or time cannot be in past');
+      if (payload.startTime && (new Date(payload.startTime) < new Date(serverDate))) {
+        setMessage({ type: 'error', text: "Past time or date is not allowed" });
+        return;
       }
 
       const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/exams/create-exam`, payload);
@@ -246,7 +247,7 @@ function CreateExam() {
                       }
                     }}
                     disabled={(date) => {
-                      const today = new Date();
+                      const today = new Date(serverDate);
                       today.setHours(0, 0, 0, 0);
                       return date < today;
                     }}
@@ -255,13 +256,26 @@ function CreateExam() {
                     <input
                       type="time"
                       className="w-full border rounded-md px-2 py-1"
-                      value={startTime ? format(new Date(startTime), "HH:mm") : ""}
+                      value={startTime ? formatInTimeZone(new Date(startTime), "Asia/Kolkata", "HH:mm") : ""}
                       onChange={(e) => {
                         if (startTime) {
-                          const date = new Date(startTime);
+                          const d = new Date(startTime);
                           const [hh, mm] = e.target.value.split(":").map(Number);
-                          date.setHours(hh, mm, 0, 0);
-                          setStartTime(date.toISOString());
+                          d.setHours(hh, mm, 0, 0);
+
+                          // ⛔ If same date as serverDate and time < server time → block
+                          if (serverDate) {
+                            const istSelected = toZonedTime(d, "Asia/Kolkata");
+                            const istServer = serverDate;
+                            if (
+                              istSelected.toDateString() === istServer.toDateString() &&
+                              istSelected < istServer
+                            ) {
+                              setMessage({ type: 'error', text: "Past time not allowed" });
+                              return;
+                            }
+                          }
+                          setStartTime(d.toISOString());
                         }
                       }}
                     />
