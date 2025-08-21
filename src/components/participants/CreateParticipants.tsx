@@ -112,14 +112,14 @@ const CreateParticipant: React.FC = () => {
 
       {/* Bulk Upload */}
       <div className="space-y-4">
-        <div className="flex justify-between">
-          <h3 className="text-lg font-semibold text-gray-700">Create Participant(Excel)</h3>
+        <div className="flex justify-end">
+          {/* <h3 className="text-lg font-semibold text-gray-700">Create Participant(Excel)</h3> */}
 
           <button
             onClick={handleDownload}
             className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 text-sm font-medium"
           >
-            📥 Download Excel Sample
+            📥 Download Excel Template
           </button>
         </div>
         <div>

@@ -175,7 +175,7 @@ const ManageQuestionBank = () => {
           onChange={(e) => setSelectedCategory(Number(e.target.value) || null)}
           className="p-2 border rounded"
         >
-          <option value="">Select Category</option>
+          <option value="">Category</option>
           {categories.map((cat: any) => (
             <option key={cat.id} value={cat.id}>
               {cat.name}
@@ -189,7 +189,7 @@ const ManageQuestionBank = () => {
           className="p-2 border rounded"
           disabled={!topics.length}
         >
-          <option value="">Select Topic</option>
+          <option value="">Topic</option>
           {topics.map((topic: any) => (
             <option key={topic.id} value={topic.id}>
               {topic.name}
@@ -202,7 +202,7 @@ const ManageQuestionBank = () => {
           onChange={(e) => setDifficulty(e.target.value || null)}
           className="p-2 border rounded"
         >
-          <option value="">Select Difficulty</option>
+          <option value="">Difficulty</option>
           <option value="EASY">Easy</option>
           <option value="MEDIUM">Medium</option>
           <option value="HARD">Hard</option>
@@ -212,7 +212,7 @@ const ManageQuestionBank = () => {
           onChange={(e) => setSelectedBatchId(Number(e.target.value) || null)}
           className="p-2 border rounded"
         >
-          <option value="">Select Batch</option>
+          <option value="">Batch</option>
           {batches.map((batch: any) => (
             <option key={batch.batchId} value={batch.batchId}>
               {`BatchId-${batch.batchId} - (${new Date(batch.batch.uploadedAt).toLocaleString()})`}

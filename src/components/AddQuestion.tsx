@@ -152,9 +152,9 @@ function AddQuestion() {
           download
           target="_blank"
           rel="noopener noreferrer"
-          className="mr-[47px] bg-purple-600 text-white px-4 py-2 rounded-xl hover:bg-purple-700 transition text-sm font-semibold"
+          className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 text-sm font-medium"
         >
-          Download Sample Excel
+          📥 Download Excel Template
         </a>
       </div>
 

@@ -43,6 +43,7 @@ export default function SuperUsers() {
           <tr>
             <th className="px-4 py-3 text-left">Name</th>
             <th className="px-4 py-3 text-left">Email</th>
+            <th className="px-4 py-3 text-left">Mobile Number</th>
             <th className="px-4 py-3 text-left">Role</th>
             <th className="px-4 py-3 text-left">CreatedAt</th>
             <th className="px-4 py-3 text-left">CreatedBy</th>
@@ -53,6 +54,7 @@ export default function SuperUsers() {
             <tr key={user.id} className="hover:bg-gray-100 border-b">
               <td className="px-4 py-2">{user.name}</td>
               <td className="px-4 py-2">{user.email}</td>
+              <td className="px-4 py-2">{user.mobileNumber}</td>
               <td className="px-4 py-2">{"SuperUser"}</td>
               <td className="px-4 py-2">{new Date(user.createdAt).toLocaleString()}</td>
               <td className="px-4 py-2">{user.createdBy?.name ? user.createdBy.name : 'self'}</td>

@@ -9,6 +9,11 @@ import moment from "moment";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 
+type BatchOption = {
+  label: string;
+  batchId: number;
+};
+
 const ManageParticipants = () => {
   const { user } = useAuth();
   const adminId = user?.id;
@@ -26,11 +31,28 @@ const ManageParticipants = () => {
     mobileNumber: "",
   });
 
+  const [batches, setBatches] = useState<BatchOption[]>([]);
+  const [selectedBatch, setSelectedBatch] = useState<number | null>(null);
+
+  // fetch batches 
+  const fetchBatches = async () => {
+    try {
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_ROOT_URL}/removed-data/batch-ids`,
+        { organizationId: user?.organizationId, type: "visible-participants" }
+      );
+      setBatches(res.data);
+      console.log(res.data)
+    } catch (err) {
+      console.error("Failed to fetch batches:", err);
+    }
+  };
+
   const fetchParticipants = async () => {
     try {
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_ROOT_URL}/participants/fetch-all-participant`,
-        { search, filter, organizationId, adminId }
+        { search, filter, organizationId, adminId, batchId: selectedBatch }
       );
       setParticipants(res.data.participants);
       console.log(res.data.participants)
@@ -41,8 +63,9 @@ const ManageParticipants = () => {
 
   useEffect(() => {
     fetchParticipants();
+    fetchBatches();
     // eslint-disable-next-line
-  }, [filter]);
+  }, [filter, selectedBatch]);
 
   const handleDelete = async (id: number) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this participant?");
@@ -152,11 +175,29 @@ const ManageParticipants = () => {
         </button>
       </div>
 
+
       {/* Search */}
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center justify-center">
+        {/* batch filter options */}
+        <div className="w-full">
+          <select
+            className="border px-3 py-2 rounded w-full md:w-1/3"
+            value={selectedBatch ?? ""}
+            onChange={(e) => {
+              setSelectedBatch(e.target.value ? Number(e.target.value) : null);
+            }}
+          >
+            <option value="">All Batches</option>
+            {batches.map((batch) => (
+              <option key={batch.batchId} value={batch.batchId}>
+                {batch.label}
+              </option>
+            ))}
+          </select>
+        </div>
         <input
           type="text"
-          placeholder="Search participants by name, email, mobile and batchId..."
+          placeholder="Search participants by name, email, mobile"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full border p-2 rounded-md"
@@ -177,6 +218,7 @@ const ManageParticipants = () => {
               <th className="px-4 py-3 text-left">Name</th>
               <th className="px-4 py-3 text-left">Email</th>
               <th className="px-4 py-3 text-left">Mobile</th>
+              <th className="px-4 py-3 text-left">Password</th>
               <th className="px-4 py-3 text-left">Approved</th>
               <th className="px-4 py-3 text-left">Created At</th>
               <th className="px-4 py-3 text-left">BatchId</th>
@@ -196,6 +238,7 @@ const ManageParticipants = () => {
                   <td className="p-3">{p.name}</td>
                   <td className="p-3">{p.email}</td>
                   <td className="p-3">{p.mobileNumber}</td>
+                  <td className="p-3">{p.password}</td>
                   <td className="p-3">
                     {p.approved ? (
                       <span className="text-green-600 font-semibold">Yes</span>

@@ -8,6 +8,7 @@ import DynamicTable from "../utils/DynamicTable";
 type RemovedParticipant = {
   id: number;
   name: string;
+  batchId: number;
   mobileNumber: string;
   createdAt: string;
   removedAt: string;
@@ -15,15 +16,37 @@ type RemovedParticipant = {
   removedBy: string | null;
 };
 
+type BatchOption = {
+  label: string;
+  batchId: number;
+};
+
 export default function RemovedParticipants() {
   const [participants, setParticipants] = useState<RemovedParticipant[]>([]);
   const { user } = useAuth();
+  const [batches, setBatches] = useState<BatchOption[]>([]);
+    const [selectedBatch, setSelectedBatch] = useState<number | null>(null);
+  
+
+
+  // fetch batches 
+  const fetchBatches = async () => {
+    try {
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_ROOT_URL}/removed-data/batch-ids`,
+        { organizationId: user?.organizationId, type: "participants" }
+      );
+      setBatches(res.data);
+    } catch (err) {
+      console.error("Failed to fetch batches:", err);
+    }
+  };
 
   const fetchParticipants = async () => {
     try {
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_ROOT_URL}/removed-data/removed-participants/fetch-removed-participants`,
-        { organizationId: user?.id }
+        { organizationId: user?.id, batchId: Number(selectedBatch) }
       );
       console.log(res.data.data)
       setParticipants(res.data.data);
@@ -34,7 +57,8 @@ export default function RemovedParticipants() {
 
   useEffect(() => {
     fetchParticipants();
-  }, []);
+    fetchBatches()
+  }, [selectedBatch]);
 
   const handleRestore = async (participantId: number) => {
     try {
@@ -49,6 +73,7 @@ export default function RemovedParticipants() {
   };
 
   const columns = [
+    "BatchId",
     "Name",
     "Mobile Number",
     "Created At",
@@ -59,6 +84,7 @@ export default function RemovedParticipants() {
   ];
 
   const formattedData = participants.map((p) => ({
+    "BatchId": p.batchId,
     "Name": p.name,
     "Mobile Number": p.mobileNumber,
     "Created At": new Date(p.createdAt).toLocaleString(),
@@ -72,6 +98,22 @@ export default function RemovedParticipants() {
     <div className="p-4">
       <h1 className="text-xl font-semibold mb-4">Removed Participants</h1>
 
+         <div className="mb-4">
+        <select
+          className="border px-3 py-2 rounded w-full md:w-1/3"
+          value={selectedBatch ?? ""}
+          onChange={(e) => {
+            setSelectedBatch(e.target.value ? Number(e.target.value) : null);
+          }}
+        >
+          <option value="">All Batches</option>
+          {batches.map((batch) => (
+            <option key={batch.batchId} value={batch.batchId}>
+              {batch.label}
+            </option>
+          ))}
+        </select>
+      </div>
       <DynamicTable
         columns={columns}
         data={formattedData}
