@@ -1,12 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { format } from 'date-fns';
 
 const CreateGroupForm = () => {
   const { user } = useAuth();
+  const router = useRouter();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -17,12 +26,32 @@ const CreateGroupForm = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [showButton, setShowButton] = useState<boolean>(false);
   const [groupId, setGroupId] = useState<number>(0);
-  const router = useRouter();
+
+  // calendar state
+  const [open, setOpen] = useState(false);
+  const [justSelected, setJustSelected] = useState(false);
+  const [keyboardNav, setKeyboardNav] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   // Set default start date to today on load
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
     setStartDate(today);
+  }, []);
+
+  // keyboard vs mouse detection
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Tab') setKeyboardNav(true);
+    };
+    const handleMouseDown = () => setKeyboardNav(false);
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('mousedown', handleMouseDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('mousedown', handleMouseDown);
+    };
   }, []);
 
   const resetForm = () => {
@@ -45,6 +74,7 @@ const CreateGroupForm = () => {
     setError(null);
     setSuccess(null);
     setShowButton(false);
+
     const todayDate = new Date();
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -56,14 +86,12 @@ const CreateGroupForm = () => {
       resetError();
       return;
     }
-
     if (start < new Date(todayDate.toDateString())) {
       setError('Start date cannot be in the past.');
       setLoading(false);
       resetError();
       return;
     }
-
     if (start >= end) {
       setError('Start date must be before end date.');
       setLoading(false);
@@ -80,12 +108,11 @@ const CreateGroupForm = () => {
         createdById: Number(user?.id),
         organizationId: Number(user?.organizationId),
       });
-      console.log(res.data)
 
       await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/groups/group-inactivation/group-expiry-cron`, {
         groupId: res.data.group.id,
-        endDate: res.data.group.endDate
-      })
+        endDate: res.data.group.endDate,
+      });
 
       setShowButton(true);
       setGroupId(res.data.group.id);
@@ -108,8 +135,11 @@ const CreateGroupForm = () => {
       {success && <div className="mb-4 p-3 bg-green-100 border border-green-300 text-green-700 rounded">{success}</div>}
 
       <div className="space-y-5">
+        {/* Group Name */}
         <div>
-          <label className="block mb-1 text-sm font-medium text-gray-700">Group Name  <span className="required text-red-400" aria-hidden="true">*</span></label>
+          <label className="block mb-1 text-sm font-medium text-gray-700">
+            Group Name <span className="text-red-400">*</span>
+          </label>
           <input
             type="text"
             value={name}
@@ -119,8 +149,11 @@ const CreateGroupForm = () => {
           />
         </div>
 
+        {/* Description */}
         <div>
-          <label className="block mb-1 text-sm font-medium text-gray-700">Description <span className="required text-red-400" aria-hidden="true">*</span></label>
+          <label className="block mb-1 text-sm font-medium text-gray-700">
+            Description <span className="text-red-400">*</span>
+          </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -130,43 +163,80 @@ const CreateGroupForm = () => {
           />
         </div>
 
+        {/* Dates */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Start Date (disabled = today) */}
           <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700">Start Date <span className="required text-red-400" aria-hidden="true">*</span></label>
-            <input
-              type="date"
-              disabled
-              value={startDate}
-              min={new Date().toISOString().split('T')[0]} // prevents selecting past dates
-              className="w-full border px-4 py-2 rounded-md focus:ring focus:ring-blue-200 text-gray-400 font-semibold cursor-not-allowed"
-              required
-            />
+            <label className="block mb-1 text-sm font-medium text-gray-700">
+              Start Date <span className="text-red-400">*</span>
+            </label>
+            <p className="w-full mb-2 border px-3 py-2 rounded text-gray-500">
+              {new Date(startDate).toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+              })}
+            </p>
           </div>
+
+          {/* End Date (shadcn Calendar) */}
           <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700">End Date <span className="required text-red-400" aria-hidden="true">*</span></label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              onFocus={(e) => (e.target as HTMLInputElement).showPicker()}
-              className="w-full border px-4 py-2 rounded-md focus:ring focus:ring-blue-200"
-              required
-            />
+            <label className="block mb-1 text-sm font-medium text-gray-700">
+              End Date <span className="text-red-400">*</span>
+            </label>
+            <Popover open={open} onOpenChange={setOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  ref={buttonRef}
+                  variant="outline"
+                  className="w-full justify-start text-left font-normal"
+                  onFocus={() => {
+                    if (keyboardNav && !justSelected) {
+                      setOpen(true);
+                    }
+                    setJustSelected(false);
+                  }}
+                >
+                  {endDate ? format(new Date(endDate), 'dd/MM/yyyy') : 'End date'}
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent
+                className="w-auto p-0"
+                side="top"
+                align="start"
+                sideOffset={4}
+                avoidCollisions={false}
+              >
+                <Calendar
+                  mode="single"
+                  selected={endDate ? new Date(endDate) : undefined}
+                  onSelect={(date) => {
+                    if (date) {
+                      setEndDate(format(date, 'yyyy-MM-dd'));
+                      setJustSelected(true);
+                      setOpen(false);
+                      buttonRef.current?.blur();
+                    }
+                  }}
+                  disabled={(date) => (startDate ? date < new Date(startDate) : false)}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
 
+        {/* Buttons */}
         <div className="text-right">
-          {
-            showButton && <button
-            type="button"
-            onClick={() => {
-              router.push(`/home/groups/${groupId}/${1}`)
-            }}
-            className="bg-green-600 mr-3 hover:bg-blue-700 text-white px-6 py-2 rounded-md disabled:opacity-50"
-          >
-            Add Participants
-          </button>
-          }
+          {showButton && (
+            <button
+              type="button"
+              onClick={() => router.push(`/home/groups/${groupId}/1`)}
+              className="bg-green-600 mr-3 hover:bg-green-700 text-white px-6 py-2 rounded-md disabled:opacity-50"
+            >
+              Add Participants
+            </button>
+          )}
           <button
             type="button"
             onClick={handleSubmit}

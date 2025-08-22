@@ -3,10 +3,16 @@
 import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Divide, Loader2 } from 'lucide-react';
 import Message from './utils/Message';
 import { MessageType } from './utils/Message';
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react"; // optional for icon
+
 
 interface AppMessage {
   type: MessageType;
@@ -34,6 +40,28 @@ function CreateExam() {
   const router = useRouter();
   const adminId = user?.id;
 
+  // calendar state
+  const [open, setOpen] = useState(false);
+  const [justSelected, setJustSelected] = useState(false);
+  const [keyboardNav, setKeyboardNav] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  
+
+  // keyboard vs mouse detection
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Tab') setKeyboardNav(true);
+    };
+    const handleMouseDown = () => setKeyboardNav(false);
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('mousedown', handleMouseDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('mousedown', handleMouseDown);
+    };
+  }, []);
 
   useEffect(() => {
     generateExamCode();
@@ -209,19 +237,76 @@ function CreateExam() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-600 mb-1">Start Time <span className="required text-red-400" aria-hidden="true">*</span></label>
-              <input
-                type="datetime-local"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                min={minDateTime}
-                className="w-full px-4 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-400"
-                required
-              />
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    ref={buttonRef}
+                    variant="outline"
+                    className={`w-full justify-start text-left font-normal ${!startTime && "text-muted-foreground"}`}
+                    onFocus={() => {
+                      if (keyboardNav && !justSelected) {
+                        setOpen(true);
+                      }
+                      setJustSelected(false);
+                    }}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startTime ? format(new Date(startTime), "dd/MM/yyyy HH:mm") : <span>Pick start date & time</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0"
+                  side="top"
+                  align="start"
+                  sideOffset={4}
+                  avoidCollisions={false}>
+                  <Calendar
+                    mode="single"
+                    selected={startTime ? new Date(startTime) : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        // preserve time (HH:mm) if user selected before
+                        const prev = startTime ? new Date(startTime) : null;
+                        const hours = prev ? prev.getHours() : new Date().getHours();
+                        const minutes = prev ? prev.getMinutes() : new Date().getMinutes();
+
+                        date.setHours(hours, minutes, 0, 0);
+
+                        const iso = date.toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
+                        setStartTime(iso);
+                        buttonRef.current?.blur();
+                      }
+                    }}
+                    disabled={(date) => {
+                      const today = new Date()
+                      today.setHours(0, 0, 0, 0) // reset to midnight
+                      return date < today
+                    }} // prevent past dates
+                  />
+                  {/* Add time input under calendar */}
+                  <div className="p-3 border-t">
+                    <input
+                      type="time"
+                      className="w-full border rounded-md px-2 py-1"
+                      value={startTime ? new Date(startTime).toISOString().slice(11, 16) : ""}
+                      onChange={(e) => {
+                        if (startTime) {
+                          const date = new Date(startTime);
+                          const [hh, mm] = e.target.value.split(":").map(Number);
+                          date.setHours(hh, mm, 0, 0);
+                          const iso = date.toISOString().slice(0, 16);
+                          setStartTime(iso);
+                        }
+                      }}
+                    />
+                  </div>
+                </PopoverContent>
+              </Popover>
+
             </div>
 
             {startTime && duration && (
               <div className="md:col-span-2 text-gray-600 text-sm">
-                <strong>Auto End Time:</strong> {endTime.replace('T', ' ')}
+                <strong>End Time:</strong> {endTime.replace('T', ' ')}
               </div>
             )}
           </div>

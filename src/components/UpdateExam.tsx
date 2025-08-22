@@ -8,6 +8,14 @@ import { Loader2 } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useSocket } from '@/context/SocketContext';
+import { format } from "date-fns";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
 
 // Utility to convert ISO to local datetime-local value
 const toLocalDatetimeInputValue = (dateString: string) => {
@@ -33,7 +41,26 @@ const UpdateExam: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isInitialDataLoaded, setIsInitialDataLoaded] = useState(false);
 
-  const initialStateRef = useRef<any>({});
+  // calendar state
+  const initialStateRef = useRef<any>(null);
+  const [open, setOpen] = useState(false);
+  const [justSelected, setJustSelected] = useState(false);
+  const [keyboardNav, setKeyboardNav] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Tab') setKeyboardNav(true);
+    };
+    const handleMouseDown = () => setKeyboardNav(false);
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('mousedown', handleMouseDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('mousedown', handleMouseDown);
+    };
+  }, []);
+
 
   // socket
   const socket = useSocket();
@@ -141,18 +168,18 @@ const UpdateExam: React.FC = () => {
         throw new Error(res.data.message);
       }
 
-       if (res.data.response.status == "Scheduled") {
+      if (res.data.response.status == "Scheduled") {
         await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/participants/my-group/exam/schedule-activation`, {
           examId: res.data.response.id,
           startTime: res.data.response.startTime,
           endTime: res.data.response.endTime
         });
-      } else if(res.data.response.status == "Active") {
+      } else if (res.data.response.status == "Active") {
         await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/participants/my-group/exam/active-exam-schedule-activation`, {
           examId: res.data.response.id,
           endTime: res.data.response.endTime
         });
-      } 
+      }
 
       // socket event 
       socket?.emit('update-exam-status-admin', 'status-updated')
@@ -238,24 +265,92 @@ const UpdateExam: React.FC = () => {
 
         {status === 'Scheduled' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* ✅ Start Time with Shadcn Calendar + Time Picker */}
             <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-1">Start Time</label>
-              <input
-                type="datetime-local"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
+              <label className="block text-sm font-semibold text-gray-600 mb-1">
+                Start Time
+              </label>
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    ref={initialStateRef}
+                    variant="outline"
+                    className={`w-full justify-start text-left font-normal ${!startTime && "text-muted-foreground"}`}
+                    onFocus={() => {
+                      if (keyboardNav && !justSelected) {
+                        setOpen(true);
+                      }
+                      setJustSelected(false);
+                    }}
+                  >
+                    {startTime
+                      ? format(new Date(startTime), "dd/MM/yyyy hh:mm a") // ✅ 12-hour with AM/PM
+                      : "Pick start date & time"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-auto p-0"
+                  side="top"
+                  align="start"
+                  sideOffset={4}
+                  avoidCollisions={false}
+                >
+                  <Calendar
+                    mode="single"
+                    selected={startTime ? new Date(startTime) : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        // keep previously chosen time if any
+                        const prev = startTime ? new Date(startTime) : null;
+                        const hours = prev ? prev.getHours() : new Date().getHours();
+                        const minutes = prev ? prev.getMinutes() : new Date().getMinutes();
+
+                        date.setHours(hours, minutes, 0, 0);
+
+                        const iso = date.toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
+                        setStartTime(iso);
+                        setJustSelected(true);
+                        initialStateRef.current?.blur();
+                      }
+                    }}
+                    disabled={(date) => date < new Date()} // block past dates
+                  />
+                  {/* ✅ Time input under calendar */}
+                  <div className="p-3 border-t">
+                    <input
+                      type="time"
+                      className="w-full border rounded-md px-2 py-1"
+                      value={startTime ? format(new Date(startTime), "HH:mm") : ""}
+                      onChange={(e) => {
+                        if (startTime) {
+                          const date = new Date(startTime);
+                          const [hh, mm] = e.target.value.split(":").map(Number);
+                          date.setHours(hh, mm, 0, 0);
+                          const iso = date.toISOString().slice(0, 16);
+                          setStartTime(iso);
+                        }
+                      }}
+                    />
+                    {/* ✅ Show AM/PM formatted time below input */}
+                    {startTime && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Selected time: {format(new Date(startTime), "hh:mm a")}
+                      </p>
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
 
+            {/* ✅ End Time stays auto-calculated & disabled */}
             <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-1">End Time</label>
+              <label className="block text-sm font-semibold text-gray-600 mb-1">
+                End Time
+              </label>
               <input
-                type="datetime-local"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-500"
+                type="text"
+                value={endTime ? format(new Date(endTime), "dd/MM/yyyy hh:mm a") : ""}
+                className="w-full px-4 py-3 rounded-xl border bg-gray-100 text-gray-500 cursor-not-allowed"
                 disabled
                 required
               />
@@ -263,14 +358,14 @@ const UpdateExam: React.FC = () => {
           </div>
         )}
 
+
         <button
           type="submit"
           disabled={!isModified || loading}
-          className={`w-full py-3 rounded-xl text-white flex justify-center items-center gap-2 transition ${
-            loading || !isModified
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700'
-          }`}
+          className={`w-full py-3 rounded-xl text-white flex justify-center items-center gap-2 transition ${loading || !isModified
+            ? 'bg-gray-400 cursor-not-allowed'
+            : 'bg-blue-600 hover:bg-blue-700'
+            }`}
         >
           {loading && <Loader2 className="animate-spin w-5 h-5" />}
           {loading ? 'Updating...' : 'Update Exam'}
