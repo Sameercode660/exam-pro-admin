@@ -26,6 +26,7 @@ const CreateGroupForm = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [showButton, setShowButton] = useState<boolean>(false);
   const [groupId, setGroupId] = useState<number>(0);
+  const [serverDate, setServerDate] = useState<string>('')
 
   // calendar state
   const [open, setOpen] = useState(false);
@@ -37,6 +38,7 @@ const CreateGroupForm = () => {
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
     setStartDate(today);
+    fetchServerDate()
   }, []);
 
   // keyboard vs mouse detection
@@ -69,6 +71,11 @@ const CreateGroupForm = () => {
     }, 3000);
   };
 
+  const fetchServerDate = async () => {
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_ROOT_URL}/date-time`);
+    setServerDate(response.data.date)
+  }
+
   const handleSubmit = async () => {
     setLoading(true);
     setError(null);
@@ -76,11 +83,11 @@ const CreateGroupForm = () => {
     setShowButton(false);
 
     const todayDate = new Date();
-    const start = new Date(startDate);
+    const start = new Date(serverDate);
     const end = new Date(endDate);
 
     // Validation
-    if (!name || !description || !startDate || !endDate) {
+    if (!name || !description || !serverDate || !endDate) {
       setError('All fields are required.');
       setLoading(false);
       resetError();
@@ -103,7 +110,7 @@ const CreateGroupForm = () => {
       const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/groups/create`, {
         name,
         description,
-        startDate,
+        serverDate,
         endDate,
         createdById: Number(user?.id),
         organizationId: Number(user?.organizationId),
@@ -171,7 +178,7 @@ const CreateGroupForm = () => {
               Start Date <span className="text-red-400">*</span>
             </label>
             <p className="w-full mb-2 border px-3 py-2 rounded text-gray-500">
-              {new Date(startDate).toLocaleDateString('en-GB', {
+              {new Date(serverDate).toLocaleDateString('en-GB', {
                 day: '2-digit',
                 month: '2-digit',
                 year: 'numeric',
@@ -219,7 +226,7 @@ const CreateGroupForm = () => {
                       buttonRef.current?.blur();
                     }
                   }}
-                  disabled={(date) => (startDate ? date < new Date(startDate) : false)}
+                  disabled={(date) => (startDate ? date < new Date(serverDate) : false)}
                 />
               </PopoverContent>
             </Popover>
