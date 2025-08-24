@@ -4,37 +4,32 @@ import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, useRef } from 'react';
-import { Divide, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import Message from './utils/Message';
 import { MessageType } from './utils/Message';
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react"; // optional for icon
-
+import { CalendarIcon } from "lucide-react";
+import { toZonedTime, formatInTimeZone } from "date-fns-tz";
 
 interface AppMessage {
   type: MessageType;
   text: string;
 }
-// import { toast, ToastContainer } from "react-toastify";
-// import "react-toastify/dist/ReactToastify.css";
-
 
 function CreateExam() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [examCode, setExamCode] = useState('');
-  const [duration, setDuration] = useState(''); // Used in both scheduled and non-scheduled
+  const [duration, setDuration] = useState('');
   const [status, setStatus] = useState('Active');
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
+  const [startTime, setStartTime] = useState<any>('');   // always store ISO string
+  const [endTime, setEndTime] = useState<string>('');
   const [scheduleMode, setScheduleMode] = useState(false);
-  const [message, setMessage] = useState<AppMessage | null>(null)
-
+  const [message, setMessage] = useState<AppMessage | null>(null);
   const [loading, setLoading] = useState(false);
-  const [minDateTime, setMinDateTime] = useState('');
 
   const { user } = useAuth();
   const router = useRouter();
@@ -45,28 +40,9 @@ function CreateExam() {
   const [justSelected, setJustSelected] = useState(false);
   const [keyboardNav, setKeyboardNav] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const [serverDate, setServerDate] = useState<string>('')
-
-
-
-  // keyboard vs mouse detection
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Tab') setKeyboardNav(true);
-    };
-    const handleMouseDown = () => setKeyboardNav(false);
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('mousedown', handleMouseDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('mousedown', handleMouseDown);
-    };
-  }, []);
 
   useEffect(() => {
     generateExamCode();
-    setMinDateTime(getCurrentDateTime());
     fetchServerDate();
   }, []);
 
@@ -74,13 +50,7 @@ function CreateExam() {
     if (scheduleMode && startTime && duration) {
       const start = new Date(startTime);
       const end = new Date(start.getTime() + Number(duration) * 60000);
-
-      // Converting to local datetime-local format (yyyy-MM-ddTHH:mm)
-      const localEnd = new Date(end.getTime() - end.getTimezoneOffset() * 60000)
-        .toISOString()
-        .slice(0, 16);
-
-      setEndTime(localEnd);
+      setEndTime(end.toISOString());
     }
   }, [scheduleMode, startTime, duration]);
 
@@ -91,22 +61,26 @@ function CreateExam() {
 
   const fetchServerDate = async () => {
     const response = await axios.get(`${process.env.NEXT_PUBLIC_ROOT_URL}/date-time`);
-    setServerDate(response.data.date)
-  }
+    const utcDateString = response.data.date; // e.g. "2025-08-24T21:33:36.836Z"
 
-  const getCurrentDateTime = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+    // Convert string → Date object in UTC
+    const utcDate = new Date(utcDateString);
+
+    // Convert UTC → IST
+    const istDate = toZonedTime(utcDate, "Asia/Kolkata");
+
+    // Format in IST
+    const formattedIST = formatInTimeZone(utcDate, "Asia/Kolkata", "yyyy-MM-dd HH:mm:ss");
+
+    console.log("Server UTC:", utcDateString);
+    console.log("IST Date Object:", istDate);
+    console.log("Formatted IST:", formattedIST);
+
+    setStartTime(istDate); // store as Date (not string)
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     try {
       setLoading(true);
 
@@ -122,9 +96,6 @@ function CreateExam() {
       };
 
       const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/exams/create-exam`, payload);
-      console.log(response.data)
-
-
 
       if (response.data.response.status == "Scheduled") {
         await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/participants/my-group/exam/schedule-activation`, {
@@ -138,8 +109,6 @@ function CreateExam() {
           endTime: response.data.response.endTime
         });
       }
-
-
 
       setMessage({ type: 'success', text: 'Exam created Successfully' });
       router.push('/home/exams/manage-exams');
@@ -164,6 +133,7 @@ function CreateExam() {
       <h2 className="text-2xl font-bold text-gray-800">Create New Exam</h2>
 
       <form onSubmit={handleSubmit} className="space-y-5">
+
         <div>
           <label className="block text-sm font-semibold text-gray-600 mb-1">Title <span className="required text-red-400" aria-hidden="true">*</span></label>
           <input
@@ -243,7 +213,7 @@ function CreateExam() {
         {scheduleMode && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-600 mb-1">Start Time <span className="required text-red-400" aria-hidden="true">*</span></label>
+              <label className="block text-sm font-semibold text-gray-600 mb-1">Start Time</label>
               <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
                   <Button
@@ -258,7 +228,7 @@ function CreateExam() {
                     }}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startTime ? format(new Date(startTime), "dd/MM/yyyy HH:mm") : <span>Pick start date & time</span>}
+                    {startTime ? format(new Date(startTime), "dd/MM/yyyy hh:mm a") : <span>Pick start date & time</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0"
@@ -271,66 +241,52 @@ function CreateExam() {
                     selected={startTime ? new Date(startTime) : undefined}
                     onSelect={(date) => {
                       if (date) {
-                        // preserve time (HH:mm) if user selected before
-                        const prev = startTime ? new Date(startTime) : null;
-                        const hours = prev ? prev.getHours() : new Date().getHours();
-                        const minutes = prev ? prev.getMinutes() : new Date().getMinutes();
-
-                        date.setHours(hours, minutes, 0, 0);
-
-                        const iso = date.toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
-                        setStartTime(iso);
+                        // console.log(date)
+                        // const prev = startTime ? new Date(startTime) : new Date();
+                        // date.setHours(prev.getHours(), prev.getMinutes(), 0, 0);
+                        setStartTime(date.toISOString());
                         buttonRef.current?.blur();
                       }
                     }}
                     disabled={(date) => {
-                      const today = new Date(serverDate)
-                      today.setHours(0, 0, 0, 0) // reset to midnight
-                      return date < today
-                    }} // prevent past dates
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      return date < today;
+                    }}
                   />
-                  {/* Add time input under calendar */}
                   <div className="p-3 border-t">
                     <input
                       type="time"
                       className="w-full border rounded-md px-2 py-1"
-                      value={startTime ? new Date(startTime).toISOString().slice(11, 16) : ""}
+                      value={startTime ? format(new Date(startTime), "HH:mm") : ""}
                       onChange={(e) => {
                         if (startTime) {
                           const date = new Date(startTime);
                           const [hh, mm] = e.target.value.split(":").map(Number);
                           date.setHours(hh, mm, 0, 0);
-                          const iso = date.toISOString().slice(0, 16);
-                          setStartTime(iso);
+                          setStartTime(date.toISOString());
                         }
                       }}
                     />
                   </div>
                 </PopoverContent>
               </Popover>
-
             </div>
 
             {startTime && duration && (
               <div className="md:col-span-2 text-gray-600 text-sm">
-                <strong>End Time:</strong> {endTime.replace('T', ' ')}
+                <strong>End Time:</strong> {endTime ? format(new Date(endTime), "dd/MM/yyyy hh:mm a") : ""}
               </div>
             )}
           </div>
         )}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition flex justify-center items-center gap-2"
-        >
-          {loading && <Loader2 className="animate-spin w-5 h-5" />}
-          {loading ? 'Creating...' : 'Create Exam'}
-        </button>
+        <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition flex justify-center items-center gap-2" > {loading && <Loader2 className="animate-spin w-5 h-5" />} {loading ? 'Creating...' : 'Create Exam'} </button>
       </form>
-      {/* <ToastContainer /> */}
     </div>
   );
 }
 
 export default CreateExam;
+
+
+// {startTime ? format(new Date(startTime), "dd/MM/yyyy hh:mm a") : <span>Pick start date & time</span>}
