@@ -111,6 +111,8 @@ const ExamListModal: React.FC<ExamListModalProps> = ({
                 adminId,
             });
 
+            console.log(res.data)
+
             const { message, success, alreadyAssigned, recoverRequired } = res.data;
 
             if (success) {
@@ -123,11 +125,9 @@ const ExamListModal: React.FC<ExamListModalProps> = ({
                 toast.info(message);
             } else if (recoverRequired) {
                 toast.warn(message);
-            } else {
-                toast.info(message || "Exam action completed.");
             }
         } catch (err: any) {
-            console.error(err);
+            // console.error(err); log error disabled 
             toast.error(err.response?.data?.error || 'Failed to add exam to group');
         }
     };
