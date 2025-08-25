@@ -8,20 +8,17 @@ import { Loader2 } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useSocket } from '@/context/SocketContext';
-import { format } from "date-fns";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
+import { formatInTimeZone, toZonedTime, fromZonedTime } from "date-fns-tz";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 
-// Utility to convert ISO to local datetime-local value
-const toLocalDatetimeInputValue = (dateString: string) => {
-  const date = new Date(dateString);
-  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-  return localDate.toISOString().slice(0, 16);
+const TIME_ZONE = "Asia/Kolkata";
+
+// ✅ Convert UTC ISO → IST hh:mm (for <input type="time">)
+const toISTTimeString = (dateString: string) => {
+  const d = new Date(dateString);
+  return formatInTimeZone(d, TIME_ZONE, "HH:mm");
 };
 
 const UpdateExam: React.FC = () => {
@@ -34,19 +31,46 @@ const UpdateExam: React.FC = () => {
   const [examCode, setExamCode] = useState('');
   const [duration, setDuration] = useState('');
   const [status, setStatus] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
+  const [startTime, setStartTime] = useState<string>(''); // stored as UTC ISO
+  const [endTime, setEndTime] = useState<string>('');     // stored as UTC ISO
+  const [serverDate, setServerDate] = useState<Date | null>(null); // ✅ keep IST server time
   const [loading, setLoading] = useState(false);
   const [isModified, setIsModified] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isInitialDataLoaded, setIsInitialDataLoaded] = useState(false);
 
-  // calendar state
   const initialStateRef = useRef<any>(null);
   const [open, setOpen] = useState(false);
   const [justSelected, setJustSelected] = useState(false);
   const [keyboardNav, setKeyboardNav] = useState(false);
 
+  const socket = useSocket();
+  const adminId = user?.id;
+
+  // ✅ fetch server date
+  const fetchServerDate = async () => {
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_ROOT_URL}/date-time`);
+      const utcDateString = response.data.date; // e.g. "2025-08-24T21:33:36.836Z"
+      const utcDate = new Date(utcDateString);
+      const istDate = toZonedTime(utcDate, TIME_ZONE);
+
+      setServerDate(istDate);
+
+      // if scheduled and no start time set, default to server date
+      if (status === "Scheduled" && !startTime) {
+        setStartTime(utcDate.toISOString()); // keep UTC ISO
+      }
+    } catch (err) {
+      console.error("Failed to fetch server date", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchServerDate();
+  }, [status]);
+
+  // ✅ accessibility (keyboard vs mouse nav)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Tab') setKeyboardNav(true);
@@ -61,12 +85,7 @@ const UpdateExam: React.FC = () => {
     };
   }, []);
 
-
-  // socket
-  const socket = useSocket();
-
-  const adminId = user?.id;
-
+  // ✅ Fetch exam
   useEffect(() => {
     if (!adminId) return;
 
@@ -85,8 +104,8 @@ const UpdateExam: React.FC = () => {
           setExamCode(exam.examCode);
           setDuration(exam.duration.toString());
           setStatus(exam.status);
-          setStartTime(exam.startTime ? toLocalDatetimeInputValue(exam.startTime) : '');
-          setEndTime(exam.endTime ? toLocalDatetimeInputValue(exam.endTime) : '');
+          setStartTime(exam.startTime || '');
+          setEndTime(exam.endTime || '');
 
           initialStateRef.current = {
             title: exam.title,
@@ -94,8 +113,8 @@ const UpdateExam: React.FC = () => {
             examCode: exam.examCode,
             duration: exam.duration.toString(),
             status: exam.status,
-            startTime: exam.startTime ? toLocalDatetimeInputValue(exam.startTime) : '',
-            endTime: exam.endTime ? toLocalDatetimeInputValue(exam.endTime) : '',
+            startTime: exam.startTime || '',
+            endTime: exam.endTime || '',
           };
 
           setIsInitialDataLoaded(true);
@@ -110,16 +129,16 @@ const UpdateExam: React.FC = () => {
     fetchExam();
   }, [examId, adminId]);
 
-  // Handle auto calculation of end time if Scheduled
+  // ✅ Auto-calc end time
   useEffect(() => {
     if (status === 'Scheduled' && startTime && duration) {
-      const start = new Date(startTime);
-      const calculatedEnd = new Date(start.getTime() + Number(duration) * 60000);
-      const localEnd = new Date(calculatedEnd.getTime() - calculatedEnd.getTimezoneOffset() * 60000);
-      setEndTime(localEnd.toISOString().slice(0, 16));
+      const startUTC = new Date(startTime);
+      const calculatedEnd = new Date(startUTC.getTime() + Number(duration) * 60000);
+      setEndTime(calculatedEnd.toISOString());
     }
   }, [status, startTime, duration]);
 
+  // ✅ Track modifications
   useEffect(() => {
     if (!isInitialDataLoaded) return;
 
@@ -135,10 +154,19 @@ const UpdateExam: React.FC = () => {
     setIsModified(isChanged);
   }, [title, description, duration, status, startTime, endTime, isInitialDataLoaded]);
 
+  // ✅ Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!isModified) return;
+
+    // check serverDate restriction
+    if (status === "Scheduled" && serverDate && startTime) {
+      const selected = new Date(startTime);
+      if (selected <= serverDate) {
+        toast.error("Start time must be greater than current  time");
+        return;
+      }
+    }
 
     try {
       setLoading(true);
@@ -164,10 +192,9 @@ const UpdateExam: React.FC = () => {
         payload
       );
 
-      if (!res.data.status) {
-        throw new Error(res.data.message);
-      }
+      if (!res.data.status) throw new Error(res.data.message);
 
+      // notify participants
       if (res.data.response.status == "Scheduled") {
         await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/participants/my-group/exam/schedule-activation`, {
           examId: res.data.response.id,
@@ -181,12 +208,10 @@ const UpdateExam: React.FC = () => {
         });
       }
 
-      // socket event 
-      socket?.emit('update-exam-status-admin', 'status-updated')
+      socket?.emit('update-exam-status-admin', 'status-updated');
       toast.success('Exam updated successfully');
       router.push('/home/exams/manage-exams');
     } catch (err: any) {
-      console.error(err);
       setError(err.response?.data?.message || err.message);
     } finally {
       setLoading(false);
@@ -204,6 +229,8 @@ const UpdateExam: React.FC = () => {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
+        {/* other fields unchanged */}
+
         <div>
           <label className="block text-sm font-semibold text-gray-600 mb-1">Title</label>
           <input
@@ -265,7 +292,7 @@ const UpdateExam: React.FC = () => {
 
         {status === 'Scheduled' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* ✅ Start Time with Shadcn Calendar + Time Picker */}
+            {/* ✅ Start Time */}
             <div>
               <label className="block text-sm font-semibold text-gray-600 mb-1">
                 Start Time
@@ -273,99 +300,77 @@ const UpdateExam: React.FC = () => {
               <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
                   <Button
-                    ref={initialStateRef}
                     variant="outline"
                     className={`w-full justify-start text-left font-normal ${!startTime && "text-muted-foreground"}`}
                     onFocus={() => {
-                      if (keyboardNav && !justSelected) {
-                        setOpen(true);
-                      }
+                      if (keyboardNav && !justSelected) setOpen(true);
                       setJustSelected(false);
                     }}
                   >
                     {startTime
-                      ? format(new Date(startTime), "dd/MM/yyyy hh:mm a") // ✅ 12-hour with AM/PM
+                      ? formatInTimeZone(new Date(startTime), TIME_ZONE, "dd/MM/yyyy hh:mm a")
                       : "Pick start date & time"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent
-                  className="w-auto p-0"
-                  side="top"
-                  align="start"
-                  sideOffset={4}
-                  avoidCollisions={false}
-                >
+                <PopoverContent className="w-auto p-0" side="top" align="start" sideOffset={4}>
                   <Calendar
                     mode="single"
-                    selected={startTime ? new Date(startTime) : undefined}
+                    selected={startTime ? toZonedTime(new Date(startTime), TIME_ZONE) : serverDate || undefined}
                     onSelect={(date) => {
                       if (date) {
-                        // keep previously chosen time if any
-                        const prev = startTime ? new Date(startTime) : null;
-                        const hours = prev ? prev.getHours() : new Date().getHours();
-                        const minutes = prev ? prev.getMinutes() : new Date().getMinutes();
-
-                        date.setHours(hours, minutes, 0, 0);
-
-                        const iso = date.toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
-                        setStartTime(iso);
+                        const prev = startTime ? toZonedTime(new Date(startTime), TIME_ZONE) : (serverDate || new Date());
+                        date.setHours(prev.getHours(), prev.getMinutes(), 0, 0);
+                        const utcDate = fromZonedTime(date, TIME_ZONE);
+                        setStartTime(utcDate.toISOString());
                         setJustSelected(true);
-                        initialStateRef.current?.blur();
                       }
                     }}
-                    disabled={(date) => date < new Date()} // block past dates
+                    disabled={(date) => {
+                      if (!serverDate) return false;
+                      const cutoff = new Date(serverDate);
+                      cutoff.setHours(0, 0, 0, 0);
+                      return date < cutoff;
+                    }}
                   />
-                  {/* ✅ Time input under calendar */}
                   <div className="p-3 border-t">
                     <input
                       type="time"
                       className="w-full border rounded-md px-2 py-1"
-                      value={startTime ? format(new Date(startTime), "HH:mm") : ""}
+                      value={startTime ? toISTTimeString(startTime) : ""}
                       onChange={(e) => {
                         if (startTime) {
-                          const date = new Date(startTime);
+                          const d = toZonedTime(new Date(startTime), TIME_ZONE);
                           const [hh, mm] = e.target.value.split(":").map(Number);
-                          date.setHours(hh, mm, 0, 0);
-                          const iso = date.toISOString().slice(0, 16);
-                          setStartTime(iso);
+                          d.setHours(hh, mm, 0, 0);
+                          const utcDate = fromZonedTime(d, TIME_ZONE);
+                          setStartTime(utcDate.toISOString());
                         }
                       }}
                     />
-                    {/* ✅ Show AM/PM formatted time below input */}
-                    {startTime && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        Selected time: {format(new Date(startTime), "hh:mm a")}
-                      </p>
-                    )}
                   </div>
                 </PopoverContent>
               </Popover>
             </div>
 
-            {/* ✅ End Time stays auto-calculated & disabled */}
+            {/* ✅ End Time */}
             <div>
               <label className="block text-sm font-semibold text-gray-600 mb-1">
                 End Time
               </label>
               <input
                 type="text"
-                value={endTime ? format(new Date(endTime), "dd/MM/yyyy hh:mm a") : ""}
+                value={endTime ? formatInTimeZone(new Date(endTime), TIME_ZONE, "dd/MM/yyyy hh:mm a") : ""}
                 className="w-full px-4 py-3 rounded-xl border bg-gray-100 text-gray-500 cursor-not-allowed"
                 disabled
-                required
               />
             </div>
           </div>
         )}
 
-
         <button
           type="submit"
           disabled={!isModified || loading}
-          className={`w-full py-3 rounded-xl text-white flex justify-center items-center gap-2 transition ${loading || !isModified
-            ? 'bg-gray-400 cursor-not-allowed'
-            : 'bg-blue-600 hover:bg-blue-700'
-            }`}
+          className={`w-full py-3 rounded-xl text-white flex justify-center items-center gap-2 transition ${loading || !isModified ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
         >
           {loading && <Loader2 className="animate-spin w-5 h-5" />}
           {loading ? 'Updating...' : 'Update Exam'}

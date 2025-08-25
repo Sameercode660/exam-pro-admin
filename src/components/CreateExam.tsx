@@ -30,6 +30,7 @@ function CreateExam() {
   const [scheduleMode, setScheduleMode] = useState(false);
   const [message, setMessage] = useState<AppMessage | null>(null);
   const [loading, setLoading] = useState(false);
+  const [serverDate, setServerDate] = useState<any>('')
 
   const { user } = useAuth();
   const router = useRouter();
@@ -63,20 +64,12 @@ function CreateExam() {
     const response = await axios.get(`${process.env.NEXT_PUBLIC_ROOT_URL}/date-time`);
     const utcDateString = response.data.date; // e.g. "2025-08-24T21:33:36.836Z"
 
-    // Convert string → Date object in UTC
+    // Parse as UTC and convert to IST
     const utcDate = new Date(utcDateString);
-
-    // Convert UTC → IST
     const istDate = toZonedTime(utcDate, "Asia/Kolkata");
 
-    // Format in IST
-    const formattedIST = formatInTimeZone(utcDate, "Asia/Kolkata", "yyyy-MM-dd HH:mm:ss");
-
-    console.log("Server UTC:", utcDateString);
-    console.log("IST Date Object:", istDate);
-    console.log("Formatted IST:", formattedIST);
-
-    setStartTime(istDate); // store as Date (not string)
+    setStartTime(istDate);
+    setServerDate(istDate) // keep Date object in IST
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -94,6 +87,10 @@ function CreateExam() {
         endTime: scheduleMode && endTime ? endTime : null,
         createdByAdminId: adminId,
       };
+
+      if(payload.startTime && (new Date(payload.startTime) < new Date(serverDate))) {
+        alert('Date or time cannot be in past');
+      }
 
       const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/exams/create-exam`, payload);
 
@@ -113,7 +110,7 @@ function CreateExam() {
       setMessage({ type: 'success', text: 'Exam created Successfully' });
       router.push('/home/exams/manage-exams');
     } catch (err: any) {
-      setMessage({ type: 'error', text: err.response?.data?.message || err.message });
+      setMessage({ type: 'error', text: "Past time or date is not allowed" });
     } finally {
       setLoading(false);
     }
@@ -242,8 +239,8 @@ function CreateExam() {
                     onSelect={(date) => {
                       if (date) {
                         // console.log(date)
-                        // const prev = startTime ? new Date(startTime) : new Date();
-                        // date.setHours(prev.getHours(), prev.getMinutes(), 0, 0);
+                        const prev = startTime ? new Date(startTime) : new Date();
+                        date.setHours(prev.getHours(), prev.getMinutes(), 0, 0);
                         setStartTime(date.toISOString());
                         buttonRef.current?.blur();
                       }
