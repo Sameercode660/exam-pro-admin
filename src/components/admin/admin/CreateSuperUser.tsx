@@ -44,6 +44,8 @@ const CreateSuperUser = () => {
     if (adminId) fetchOrganization();
   }, [adminId]);
 
+
+
   // Generate password when name changes
   useEffect(() => {
     if (form.name) {
@@ -116,26 +118,26 @@ const CreateSuperUser = () => {
     <div className="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-md mt-6">
       <h2 className="text-xl font-bold mb-4">Create SuperUser</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <input 
-          name="name" 
-          placeholder="Name" 
-          value={form.name} 
-          onChange={handleChange} 
-          className={`w-full border px-4 py-2 rounded ${nameError ? 'border-red-500' : ''}`} 
+        <input
+          name="name"
+          placeholder="Name"
+          value={form.name}
+          onChange={handleChange}
+          className={`w-full border px-4 py-2 rounded ${nameError ? 'border-red-500' : ''}`}
         />
-        <input 
-          name="email" 
-          placeholder="Email" 
-          value={form.email} 
-          onChange={handleChange} 
-          className={`w-full border px-4 py-2 rounded ${emailError ? 'border-red-500' : ''}`} 
+        <input
+          name="email"
+          placeholder="Email"
+          value={form.email}
+          onChange={handleChange}
+          className={`w-full border px-4 py-2 rounded ${emailError ? 'border-red-500' : ''}`}
         />
-        <input 
-          name="mobileNumber" 
-          placeholder="Mobile Number" 
-          value={form.mobileNumber} 
-          onChange={handleChange} 
-          className={`w-full border px-4 py-2 rounded ${mobileNumberError ? 'border-red-500' : ''}`} 
+        <input
+          name="mobileNumber"
+          placeholder="Mobile Number"
+          value={form.mobileNumber}
+          onChange={handleChange}
+          className={`w-full border px-4 py-2 rounded ${mobileNumberError ? 'border-red-500' : ''}`}
         />
 
         {/* Styled <p> instead of input */}
@@ -143,10 +145,10 @@ const CreateSuperUser = () => {
           {form.password || 'Password will be generated...'}
         </p>
 
-        <button 
-          type="submit" 
-          disabled={loading || !organizationId} 
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        <button
+          type="submit"
+          disabled={loading || !organizationId}
+          className=" cursor-pointer bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
           {loading ? 'Creating...' : 'Create SuperUser'}
         </button>

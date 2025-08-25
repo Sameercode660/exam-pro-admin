@@ -73,7 +73,7 @@ const EditGroup = ({
     const fetchGroup = async () => {
       try {
         const res = await axios.post(
-          `${process.env.NEXT_PUBLIC_ROOT_URL}/groups/fetch-single-group`,
+          `${process.env.NEXT_PUBLIC_ROOT_URL}/groups/fetch-single-group-edit`,
           { groupId }
         );
         setGroupData(res.data.group);

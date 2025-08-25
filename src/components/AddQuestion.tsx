@@ -13,6 +13,7 @@ import BatchSummaryPupup from './utils/BatchSummaryPupup';
 
 function AddQuestion() {
   const [loading, setLoading] = useState(false);
+  const [loadingSingleQuestion, setLoadingSigleQuestion] = useState(false)
   const [file, setFile] = useState<File | null>(null);
   const [categoryName, setCategoryName] = useState('');
   const [topicName, setTopicName] = useState('');
@@ -118,7 +119,7 @@ function AddQuestion() {
     }
 
     try {
-      setLoading(true);
+      setLoadingSigleQuestion(true);
 
       const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/questions/add-single-question`, data);
 
@@ -132,7 +133,7 @@ function AddQuestion() {
       console.error('API Error:', error.message);
       toast.error('Something went wrong. Please try again later.');
     } finally {
-      setLoading(false);
+      setLoadingSigleQuestion(false);
     }
   };
 
@@ -274,11 +275,11 @@ function AddQuestion() {
 
           <button
             onClick={handleFormSubmit}
-            disabled={loading}
+            disabled={loadingSingleQuestion}
             className={`bg-green-500 text-white px-6 py-3 rounded-xl hover:bg-green-600 transition flex items-center justify-center gap-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
             {loading && <Loader2 className="animate-spin w-5 h-5" />}
-            {loading ? 'Uploading...' : 'Add Question'}
+            {loadingSingleQuestion ? 'Uploading...' : 'Add Question'}
           </button>
         </div>
       </div>

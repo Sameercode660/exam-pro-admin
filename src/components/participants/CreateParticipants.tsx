@@ -140,7 +140,7 @@ const CreateParticipant: React.FC = () => {
           className={`w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition`}
         >
           {
-            excelUploadLoading ? "Uploading..." : "Upload Excel File"
+            excelUploadLoading ? "Uploading..." : "Upload"
           }
         </button>
       </div>
@@ -181,7 +181,7 @@ const CreateParticipant: React.FC = () => {
           className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition"
         >
           {
-            singleUplaodLoding ? "Creating..." : "Create Single Participant"
+            singleUplaodLoding ? "Creating..." : "Create Participant"
           }
         </button>
       </div>
