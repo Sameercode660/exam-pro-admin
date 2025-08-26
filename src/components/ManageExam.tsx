@@ -139,7 +139,7 @@ function ManageExam() {
                   onClick={() => router.push(`/home/exams/exam-details/${exam.id}`)}
                   className="text-xl font-bold text-blue-600 underline cursor-pointer"
                 >
-                  {(exam.title || '').toUpperCase()}
+                  {exam.title}
                 </h2>
                 <p className="text-gray-600 font-medium">{exam.description || 'No description'}</p>
                 <div className="flex flex-wrap gap-3">

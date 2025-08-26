@@ -76,7 +76,8 @@ const CreateGroupForm = () => {
     setServerDate(response.data.date)
   }
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setLoading(true);
     setError(null);
     setSuccess(null);
@@ -141,7 +142,7 @@ const CreateGroupForm = () => {
       {error && <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded">{error}</div>}
       {success && <div className="mb-4 p-3 bg-green-100 border border-green-300 text-green-700 rounded">{success}</div>}
 
-      <div className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-5">
         {/* Group Name */}
         <div>
           <label className="block mb-1 text-sm font-medium text-gray-700">
@@ -194,6 +195,7 @@ const CreateGroupForm = () => {
             <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
                 <Button
+                  type='button'
                   ref={buttonRef}
                   variant="outline"
                   className="w-full justify-start text-left font-normal"
@@ -238,22 +240,21 @@ const CreateGroupForm = () => {
           {showButton && (
             <button
               type="button"
-              onClick={() => router.push(`/home/groups/${groupId}/${1}`)}
+              onClick={() => router.push(`/home/groups/${groupId}/${1}/${0}`)}
               className="bg-green-600 mr-3 hover:bg-green-700 text-white px-6 py-2 rounded-md disabled:opacity-50"
             >
               Add Participants
             </button>
           )}
           <button
-            type="button"
-            onClick={handleSubmit}
+            type="submit"
             disabled={loading}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md disabled:opacity-50"
           >
             {loading ? 'Creating...' : 'Create Group'}
           </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 };

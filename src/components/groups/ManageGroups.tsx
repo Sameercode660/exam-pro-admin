@@ -291,7 +291,7 @@ const ManageGroups = () => {
                   <td
                     className="px-4 py-2 underline text-blue-400 cursor-pointer"
                     onClick={() => {
-                      router.push(`/home/groups/${group.id}/${0}`);
+                      router.push(`/home/groups/${group.id}/${0}/${0}`);
                     }}
                   >
                     {group.name.toUpperCase()}
@@ -300,7 +300,7 @@ const ManageGroups = () => {
                   <td
                     className="px-4 py-2 flex justify-center items-center text-blue-500 underline cursor-pointer"
                     onClick={() => {
-                      router.push(`/home/groups/${group.id}/${1}`);
+                      router.push(`/home/groups/${group.id}/${1}/${2}`);
                     }}
                   >
                     {group._count.participants}

@@ -184,7 +184,7 @@ function AdminDashboard({
 
                           {/* manage exam  */}
                           <li
-                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer}`}
+                            className={`py-2 px-4 hover:bg-gray-700 cursor-pointer`}
                             onClick={() => navigation.push('/home/exams/manage-exams')}
                           >
                             Manage Exam
@@ -193,7 +193,7 @@ function AdminDashboard({
                           {
                             user?.role == Roles.admin ? (
                               <li
-                                className={`py-2 px-4 hover:bg-gray-700 cursor-pointer }`}
+                                className={`py-2 px-4 hover:bg-gray-700 cursor-pointer`}
                                 onClick={() => navigation.push('/home/removed-data/remove-exams')}
                               >
                                 Removed Exams
@@ -261,6 +261,16 @@ function AdminDashboard({
                       {/* ends question menu  */}
 
 
+                      {/* start activity menu  */}
+                      {
+                        user?.role == Roles.admin ? (<li
+                          className="py-2 px-4 hover:bg-gray-700 cursor-pointer"
+                          onClick={() => navigation.push('/home/admins-activity')}
+                        >
+                          Activity
+                        </li>) : (null)
+                      }
+                      {/* ends activity menu  */}
 
                       {/* word cloud  */}
                       {/* <li

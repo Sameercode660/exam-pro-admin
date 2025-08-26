@@ -30,13 +30,15 @@ interface Participant {
 }
 
 const GroupManagement = () => {
-
+  const [uploadLoadingState, setUploadLoadingState] = useState(false)
   const { user } = useAuth();
   const organizationId = user?.organizationId;
   const adminId = user?.id;
 
-  const { groupId, openDialog } = useParams();
-  const [openDialogState, setOpenDialogState] = useState((() => (Number(openDialog) == 1 ? true : false))())
+  const { groupId, openDialog, openAdded } = useParams();
+  const [openDialogState, setOpenDialogState] = useState(Number(openDialog) === 1);
+  // const [openAddedDialogState, setOpenAddedDialogState] = useState(Number(openAdded) === 2);
+
   const [group, setGroup] = useState<Group | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -46,17 +48,14 @@ const GroupManagement = () => {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<number[]>([]);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [filter, setFilter] = useState<"all" | "my">("all");
 
-  const [groupParticipants, setGroupParticipants] = useState<any[]>([]); // Active participants in the group
-
-  // remove participant
+  const [groupParticipants, setGroupParticipants] = useState<any[]>([]);
   const [removedParticipants, setRemovedParticipants] = useState<Participant[]>([]);
   const [isRemovedOpen, setIsRemovedOpen] = useState(false);
   const [isExamModalOpen, setIsExamModalOpen] = useState(false);
 
-  // socket
-  const socket = useSocket();
+  const [searchAdded, setSearchAdded] = useState("");
+  const [searchRemoved, setSearchRemoved] = useState("");
 
   const [open, setOpen] = useState(false);
   const [batchData, setBatchData] = useState({
@@ -68,22 +67,111 @@ const GroupManagement = () => {
     skipped: 0,
   });
 
-  // fetch remove participants
+  const socket = useSocket();
+
+  // Tabs
+  const [activeTab, setActiveTab] = useState<'added' | 'all' | 'removed'>(Number(openAdded) === 2 ? 'added' : 'all');
+
+
+
+  // ---------------- Fetch Functions ---------------- //
+
+  const fetchParticipants = useCallback(async (): Promise<void> => {
+    try {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/groups/fetch-all-participants`, {
+        organizationId,
+        adminId,
+        search,
+        groupId: Number(groupId),
+      });
+      setParticipants(res.data.participants);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.response?.data?.error || 'Failed to fetch participants');
+    }
+  }, [organizationId, adminId, search, groupId]);
+
+  const fetchGroupParticipants = async () => {
+    try {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/groups/fetch-group-participants`, {
+        groupId: Number(groupId),
+      });
+      setGroupParticipants(res.data.participants);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.response?.data?.error || 'Failed to fetch group participants');
+    }
+  };
+
   const fetchRemovedParticipants = async () => {
     try {
       const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/groups/removed-participants`, {
         groupId: Number(groupId),
       });
-
+      console.log(res.data.participants)
       setRemovedParticipants(res.data.participants);
-      setIsRemovedOpen(true);
     } catch (err: any) {
       console.error(err);
       toast.error(err.response?.data?.error || 'Failed to fetch removed participants');
     }
   };
 
-  // restore participants
+  useEffect(() => {
+    if (isAddParticipantOpen || openDialogState) {
+      fetchParticipants();
+      fetchGroupParticipants();
+      fetchRemovedParticipants();
+    }
+  }, [isAddParticipantOpen, search, openDialogState]);
+
+  useEffect(() => {
+    const fetchGroup = async () => {
+      try {
+        const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/groups/fetch-single-group`, {
+          groupId: Number(groupId),
+        });
+        setGroup(res.data.group);
+      } catch (err: any) {
+        setError(err.response?.data?.error || 'Something went wrong');
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (groupId) fetchGroup();
+  }, [groupId]);
+
+  // ---------------- Filtered Lists ---------------- //
+
+  const addedParticipantsList = groupParticipants.map((p) => p.user);
+  const removedParticipantsList = removedParticipants;
+  const allParticipantsList = participants.filter(p =>
+    !addedParticipantsList.find(ap => ap.id === p.id) &&
+    !removedParticipantsList.find(rp => rp.id === p.id) &&
+    p.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+
+  // ------------ search filter ---------------------//
+  const filteredAdded = addedParticipantsList.filter(p =>
+    p.name.toLowerCase().includes(searchAdded.toLowerCase())
+  );
+
+  const filteredRemoved = removedParticipantsList.filter(p =>
+    p.name.toLowerCase().includes(searchRemoved.toLowerCase())
+  );
+
+
+  const isAllSelected = selected.length === allParticipantsList.length && allParticipantsList.length > 0;
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelected(allParticipantsList.map(p => p.id));
+    } else {
+      setSelected([]);
+    }
+  };
+
+
+  // -------------- function for upload and added to group, remove and restore
   const handleRestoreParticipant = async (participantId: number) => {
     try {
       await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/groups/restore-participant`, {
@@ -110,21 +198,6 @@ const GroupManagement = () => {
   };
 
 
-  // Fetch group participants (active + visible)
-  const fetchGroupParticipants = async () => {
-    try {
-      const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/groups/fetch-group-participants`, {
-        groupId: Number(groupId),
-      });
-
-      setGroupParticipants(res.data.participants);
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err.response?.data?.error || 'Failed to fetch group participants');
-    }
-  };
-
-  // Remove participant from group
   const handleRemoveParticipant = async (participantId: number) => {
     try {
       await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/groups/remove-group-participant`, {
@@ -133,51 +206,29 @@ const GroupManagement = () => {
       });
 
       // socket event 
-      socket?.emit('remove-participant-admin', 'removed')
+      socket?.emit('remove-participant-admin', 'removed');
       toast.success('Participant removed.');
 
+      // Remove from added list locally
       setGroupParticipants(prev => prev.filter(p => p.user.id !== participantId));
 
-      // ✅ Update local participants list to mark as removed
+      // Update participant status locally
       setParticipants(prev =>
         prev.map(p =>
           p.id === participantId ? { ...p, status: 'removed' } : p
         )
       );
+
+      // ✅ Fetch removed participants to update removed tab
+      fetchRemovedParticipants();
+
     } catch (err: any) {
       toast.error(err.response?.data?.error || 'Remove failed.');
     }
   };
-
-
-  useEffect(() => {
-    if (isAddParticipantOpen || openDialogState) {
-      fetchParticipants();
-      fetchGroupParticipants();
-    }
-  }, [isAddParticipantOpen, search, filter]);
-
-  useEffect(() => {
-    const fetchGroup = async () => {
-      try {
-        const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/groups/fetch-single-group`, {
-          groupId: Number(groupId),
-        });
-        setGroup(res.data.group);
-      } catch (err: any) {
-        // console.error(err);
-        setError(err.response?.data?.error || 'Something went wrong');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (groupId) fetchGroup();
-  }, [groupId]);
-
   const handleUploadExcel = async () => {
     if (!uploadFile) {
-      toast.error("Please select an Excel or CSV file to upload.");
+      toast.error("Please select an Excel file to upload.");
       return;
     }
 
@@ -192,7 +243,7 @@ const GroupManagement = () => {
       formData.append("groupId", String(groupId));
       formData.append("organizationId", String(organizationId));
       formData.append("createdById", String(adminId))
-
+      setUploadLoadingState(true)
       const res = await axios.post(
         `${process.env.NEXT_PUBLIC_ROOT_URL}/groups/add-participant-file`,
         formData,
@@ -233,26 +284,11 @@ const GroupManagement = () => {
     } catch (err: any) {
       console.error(err);
       toast.error(err.response?.data?.error || "File upload failed.");
+    } finally {
+      setUploadLoadingState(false)
     }
   };
 
-
-  const fetchParticipants = useCallback(async (): Promise<void> => {
-    try {
-      const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/groups/fetch-all-participants`, {
-        organizationId,
-        adminId,
-        filter,
-        search,
-        groupId: Number(groupId),
-      });
-
-      setParticipants(res.data.participants);
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err.response?.data?.error || 'Failed to fetch participants');
-    }
-  }, [organizationId, adminId, filter, search, groupId]);
 
   const handleAddToGroup = async () => {
     const validIds = selected.filter(id => {
@@ -295,20 +331,7 @@ const GroupManagement = () => {
     }
   };
 
-
-  const filteredParticipants = participants.filter(p =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const isAllSelected = selected.length === filteredParticipants.length && filteredParticipants.length > 0;
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelected(filteredParticipants.map(p => p.id));
-    } else {
-      setSelected([]);
-    }
-  };
+  // ---------------- Render ---------------- //
 
   return (
     <div className="min-h-screen p-8 bg-gradient-to-b from-gray-50 via-white to-gray-100 flex flex-col items-center">
@@ -317,6 +340,7 @@ const GroupManagement = () => {
         isOpen={open}
         onClose={() => setOpen(false)}
       />
+
       <div className="w-full max-w-4xl bg-white rounded-3xl shadow-2xl p-8 mb-8">
         {loading ? (
           <div className="text-gray-500 text-center animate-pulse">Loading group details...</div>
@@ -354,155 +378,168 @@ const GroupManagement = () => {
                 <FiPlus /> Manage Exams
               </button>
             </div>
-
           </div>
         ) : null}
       </div>
 
-      {/* Participants Modal */}
+      {/* Participants Modal with Tabs */}
       <Dialog open={isAddParticipantOpen || openDialogState} onClose={() => {
         setOpenDialogState(false);
-        setIsAddParticipantOpen(false)
+        setIsAddParticipantOpen(false);
       }} className="relative z-50">
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4">
           <Dialog.Panel className="bg-white rounded-xl shadow-lg max-w-xl w-full p-6 max-h-[80vh] overflow-y-auto">
             <Dialog.Title className="text-lg font-bold mb-4">Manage Participants</Dialog.Title>
 
-            <div className='flex mb-4'>
-              <label className="flex items-center justify-between w-full md:w-2/3 px-4 py-2 border rounded-xl bg-white hover:bg-gray-50 cursor-pointer text-gray-600 truncate">
-                {/* Show file name or placeholder */}
-                <span className="truncate">
-                  {uploadFile ? uploadFile.name : "Select a file for upload"}
-                </span>
-
-                {/* Hidden input field */}
-                <input
-                  type="file"
-                  accept=".xlsx, .xls"
-                  onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                  className="hidden"
-                />
-              </label>
-              <button onClick={handleUploadExcel} className="rounded h-[40px] px-5 bg-green-500 text-white mx-3">
-                Upload
+            {/* Tabs */}
+            <div className="flex gap-2 mb-4">
+              <button
+                className={`px-4 py-2 rounded-t ${activeTab === 'added' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                onClick={() => setActiveTab('added')}
+              >
+                Added Participants
               </button>
-            </div>
-
-            <div className="flex gap-4 mb-4">
-              <button onClick={() => setFilter("all")} className={`px-4 py-2 rounded ${filter === "all" ? "bg-blue-500 text-white" : "bg-gray-200"}`}>
+              <button
+                className={`px-4 py-2 rounded-t ${activeTab === 'all' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                onClick={() => setActiveTab('all')}
+              >
                 All Participants
               </button>
-              <button onClick={() => setFilter("my")} className={`px-4 py-2 rounded ${filter === "my" ? "bg-blue-500 text-white" : "bg-gray-200"}`}>
-                My Participants
-              </button>
-            </div>
-
-            <input type="text" placeholder="Search students..." value={search} onChange={(e) => setSearch(e.target.value)} className="mb-4 border rounded p-2 w-full" />
-
-            <div className="flex items-center mb-2">
-              <input type="checkbox" checked={isAllSelected} onChange={(e) => handleSelectAll(e.target.checked)} className="mr-2" />
-              <span className="text-sm text-gray-700">Select All</span>
-            </div>
-
-            <div className="h-60 overflow-y-auto space-y-2 border rounded p-2 bg-gray-50">
-              {filteredParticipants.length === 0 ? (
-                <div className="text-center text-gray-400">No participants found.</div>
-              ) : (
-                filteredParticipants.map((p) => (
-                  <div key={p.id} className="flex justify-between items-center bg-white p-2 rounded hover:bg-gray-100">
-                    <div>
-                      <span className="font-medium">{p.name}</span>
-                      <span className={`ml-2 text-xs px-2 py-1 rounded ${p.status === 'added' ? 'bg-green-100 text-green-700' :
-                        p.status === 'removed' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-gray-100 text-gray-700'
-                        }`}>
-                        {p.status}
-                      </span>
-                    </div>
-
-                    <input
-                      type="checkbox"
-                      disabled={p.status === 'added'}
-                      checked={selected.includes(p.id)}
-                      onChange={() => {
-                        setSelected(prev =>
-                          prev.includes(p.id)
-                            ? prev.filter(id => id !== p.id)
-                            : [...prev, p.id]
-                        );
-                      }}
-                    />
-                  </div>
-                ))
-              )}
-            </div>
-
-
-            <div className="mt-4 flex justify-end gap-4">
-              <button onClick={() => setIsAddParticipantOpen(false)} className="px-4 py-2 rounded bg-gray-200">Cancel</button>
-              <button onClick={handleAddToGroup} className="px-4 py-2 rounded bg-blue-500 text-white">
-                Add Selected
-              </button>
-            </div>
-
-            <div className="  mt-6 ">
-              <h3 className="font-bold mb-2">Current Group Participants</h3>
               <button
-                onClick={fetchRemovedParticipants}
-                className="text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                className={`px-4 py-2 rounded-t ${activeTab === 'removed' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                onClick={() => setActiveTab('removed')}
               >
                 Removed Participants
               </button>
-              <div className="space-y-2 h-60 overflow-y-auto">
-                {groupParticipants.length === 0 ? (
-                  <div className="text-center text-gray-400">No participants in this group.</div>
-                ) : (
-                  groupParticipants.map((p) => (
-                    <div key={p.user.id} className="flex justify-between items-center bg-white p-2 rounded shadow-sm hover:bg-gray-50">
-                      <span>{p.user.name}</span>
-                      <button onClick={() => handleRemoveParticipant(p.user.id)} className="text-red-500 hover:text-red-700">
-                        <FiTrash2 />
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
             </div>
 
-          </Dialog.Panel>
-        </div>
-      </Dialog>
-      {/* removed participant modal  */}
-      <Dialog open={isRemovedOpen} onClose={() => setIsRemovedOpen(false)} className="relative z-50">
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4">
-          <Dialog.Panel className="bg-white rounded-xl shadow-lg max-w-md w-full p-6">
-            <Dialog.Title className="text-lg font-bold mb-4">Removed Participants</Dialog.Title>
+            {/* ---------------- Tab Contents ---------------- */}
 
-            {removedParticipants.length === 0 ? (
-              <div className="text-center text-gray-400">No removed participants.</div>
-            ) : (
-              <div className="space-y-3">
-                {removedParticipants.map(p => (
-                  <div key={p.id} className="flex justify-between items-center bg-gray-100 p-2 rounded">
-                    <span>{p.name}</span>
-                    <button
-                      onClick={() => handleRestoreParticipant(p.id)}
-                      className="text-green-600 hover:text-green-800 text-sm"
-                    >
-                      Restore
-                    </button>
-                  </div>
-                ))}
+            {activeTab === 'all' && (
+              <>
+                {/* File Upload + Add Participants */}
+                <div className='flex mb-4'>
+                  <label className="flex items-center justify-between w-full md:w-2/3 px-4 py-2 border rounded-xl bg-white hover:bg-gray-50 cursor-pointer text-gray-600 truncate">
+                    <span className="truncate">
+                      {uploadFile ? uploadFile.name : "Select a file for upload"}
+                    </span>
+                    <input
+                      type="file"
+                      accept=".xlsx, .xls"
+                      onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                      className="hidden"
+                    />
+                  </label>
+                  <button onClick={handleUploadExcel} disabled={uploadLoadingState} className="rounded h-[40px] px-5 bg-green-500 text-white mx-3">
+                    {uploadLoadingState ? 'Uploading...' : 'Upload'}
+                  </button>
+                </div>
+
+                <input type="text" placeholder="Search participants..." value={search} onChange={(e) => setSearch(e.target.value)} className="mb-4 border rounded p-2 w-full" />
+
+                <div className="flex items-center mb-2">
+                  <input type="checkbox" checked={isAllSelected} onChange={(e) => handleSelectAll(e.target.checked)} className="mr-2" />
+                  <span className="text-sm text-gray-700">Select All</span>
+                </div>
+
+                <div className="h-60 overflow-y-auto space-y-2 border rounded p-2 bg-gray-50">
+                  {allParticipantsList.length === 0 ? (
+                    <div className="text-center text-gray-400">No participants found.</div>
+                  ) : (
+                    allParticipantsList.map((p) => (
+                      <div key={p.id} className="flex justify-between items-center bg-white p-2 rounded hover:bg-gray-100">
+                        <div>
+                          <span className="font-medium">{p.name}</span>
+                          <span className={`ml-2 text-xs px-2 py-1 rounded bg-gray-100 text-gray-700`}>
+                            {p.status}
+                          </span>
+                        </div>
+                        <input
+                          type="checkbox"
+                          disabled={p.status === 'added'}
+                          checked={selected.includes(p.id)}
+                          onChange={() => {
+                            setSelected(prev =>
+                              prev.includes(p.id)
+                                ? prev.filter(id => id !== p.id)
+                                : [...prev, p.id]
+                            );
+                          }}
+                        />
+                      </div>
+                    ))
+                  )}
+                </div>
+                <div className="mt-4 flex justify-end gap-4">
+                  <button onClick={handleAddToGroup} className="px-4 py-2 rounded bg-blue-500 text-white">
+                    Add Selected
+                  </button>
+                </div>
+              </>
+            )}
+
+            {activeTab === 'added' && (
+              <div>
+                <input
+                  type="text"
+                  placeholder="Search added participants..."
+                  value={searchAdded}
+                  onChange={(e) => setSearchAdded(e.target.value)}
+                  className="mb-2 border rounded p-2 w-full"
+                />
+                <div className="space-y-2 h-60 overflow-y-auto">
+                  {filteredAdded.length === 0 ? (
+                    <div className="text-center text-gray-400">No participants found.</div>
+                  ) : (
+                    filteredAdded.map((p) => (
+                      <div key={p.id} className="flex justify-between items-center bg-white p-2 rounded hover:bg-gray-100">
+                        <span>{p.name}</span>
+                        <button onClick={() => handleRemoveParticipant(p.id)} className="text-red-500 hover:text-red-700">
+                          <FiTrash2 />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             )}
 
-            <div className="mt-4 flex justify-end">
-              <button onClick={() => setIsRemovedOpen(false)} className="px-4 py-2 bg-gray-200 rounded">Close</button>
+            {activeTab === 'removed' && (
+              <div>
+                <input
+                  type="text"
+                  placeholder="Search removed participants..."
+                  value={searchRemoved}
+                  onChange={(e) => setSearchRemoved(e.target.value)}
+                  className="mb-2 border rounded p-2 w-full"
+                />
+                <div className="space-y-2 h-60 overflow-y-auto">
+                  {filteredRemoved.length === 0 ? (
+                    <div className="text-center text-gray-400">No participants found.</div>
+                  ) : (
+                    filteredRemoved.map(p => (
+                      <div key={p.id} className="flex justify-between items-center bg-gray-100 p-2 rounded">
+                        <span>{p.name}</span>
+                        <button
+                          onClick={() => handleRestoreParticipant(p.id)}
+                          className="text-green-600 hover:text-green-800 text-sm"
+                        >
+                          Restore
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-4 flex justify-end gap-4">
+              <button onClick={() => { setIsAddParticipantOpen(false); setOpenDialogState(false); }} className="px-4 py-2 rounded bg-gray-200">Close</button>
             </div>
           </Dialog.Panel>
         </div>
       </Dialog>
-      {/* exam modal list  */}
+
       <ExamListModal
         isOpen={isExamModalOpen}
         onClose={() => setIsExamModalOpen(false)}
@@ -510,7 +547,6 @@ const GroupManagement = () => {
         adminId={adminId || 0}
         groupId={Number(groupId)}
       />
-
 
       <ToastContainer position='top-center' />
     </div>

@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "next/navigation";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface QuestionCardProps {
   questions: any[];
@@ -67,14 +69,15 @@ const AddQuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestion
         questionIds: selectedQuestions,
       });
 
-      alert("Questions added successfully!");
+      // alert("Questions added successfully!");
       setSelectedQuestions([]);
       setSelectAll(false);
       fetchQuestions(page);
       fetchAlreadyAdded();
     } catch (err) {
-      console.error(err);
-      alert("Error adding questions.");
+      console.log(err);
+      // alert("Error adding questions.");
+      toast.error('Unable to add questions')
     } finally {
       setLoading(false);
     }
@@ -157,6 +160,7 @@ const AddQuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestion
           </div>
         );
       })}
+      <ToastContainer position="top-center" autoClose={1000}></ToastContainer>
     </div>
   );
 };

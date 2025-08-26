@@ -5,6 +5,7 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { ToastContainer, toast } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
+import { useSocket } from './SocketContext';
 
 type Role = 'SuperAdmin' | 'Admin' | 'SuperUser' | 'User';
 
@@ -43,6 +44,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const socket = useSocket()
 
   // Auto-login using token from secure cookie
   useEffect(() => {
@@ -53,6 +55,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         });
 
         console.log(res.data)
+        await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/admins-activity/admin-login-time`, { adminId: res.data.user.id })
+
         setUser(res.data.user);
       } catch (error) {
         setUser(null);
@@ -72,6 +76,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         { withCredentials: true }
       );
 
+      await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/admins-activity/admin-login-time`, { adminId: res.data.user.id })
+
       setUser(res.data.user);
       router.push('/home'); // redirect on successful login
     } catch (error: any) {
@@ -89,6 +95,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       {},
       { withCredentials: true }
     );
+    await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/admins-activity/admin-logout-time`, { adminId: user?.id })
     setUser(null);
     router.push('/');
   };
