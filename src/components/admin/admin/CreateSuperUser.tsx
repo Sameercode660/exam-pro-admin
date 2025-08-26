@@ -148,7 +148,7 @@ const CreateSuperUser = () => {
         <button
           type="submit"
           disabled={loading || !organizationId}
-          className=" cursor-pointer bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
           {loading ? 'Creating...' : 'Create SuperUser'}
         </button>

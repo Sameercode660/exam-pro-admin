@@ -66,7 +66,7 @@ export default function ParticipantActivityTable() {
 
             return parts.join(" ");
           })()
-        : "Online",
+        : "-",
     };
   });
 
