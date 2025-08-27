@@ -81,8 +81,11 @@ function ManageExam() {
 
   useEffect(() => {
     fetchExams();
+  }, [searchQuery]);
+  
+  useEffect(() =>{
     fetchAdmins();
-  }, []);
+  })
 
   const handleDelete = async () => {
     if (!deleteTargetId) return;
