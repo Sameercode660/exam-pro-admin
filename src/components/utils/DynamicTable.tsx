@@ -69,7 +69,7 @@ export default function DynamicTable({
 
   return (
     <div className="p-2">
-      <div className="flex justify-between mb-2">
+      <div className="flex justify-end mb-2">
         {searchable && (
           <input
             type="text"
@@ -83,7 +83,7 @@ export default function DynamicTable({
           onClick={handleDownload}
           className="ml-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
         >
-          Download Excel
+          Export to Excel
         </button>
       </div>
 
@@ -151,8 +151,8 @@ export default function DynamicTable({
               onClick={handlePrev}
               disabled={currentPage === 1}
               className={`p-2 rounded-full ${currentPage === 1
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-white border border-gray-300 hover:bg-gray-100 shadow-sm"
+                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                : "bg-white border border-gray-300 hover:bg-gray-100 shadow-sm"
                 }`}
             >
               {/* Left arrow icon */}
@@ -169,8 +169,8 @@ export default function DynamicTable({
               onClick={handleNext}
               disabled={currentPage === totalPages}
               className={`p-2 rounded-full ${currentPage === totalPages
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "bg-white border border-gray-300 hover:bg-gray-100 shadow-sm"
+                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                : "bg-white border border-gray-300 hover:bg-gray-100 shadow-sm"
                 }`}
             >
               {/* Right arrow icon */}

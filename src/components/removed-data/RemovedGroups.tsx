@@ -8,6 +8,7 @@ import { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import PageHeading from "../utils/PageHeading";
 
 type RemovedGroup = {
   id: number;
@@ -101,76 +102,85 @@ export default function RemovedGroups() {
   }));
 
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-semibold mb-4">Removed Groups</h1>
+    <>
+      <PageHeading title="Removed Groups"></PageHeading>
+      <div className="p-4">
+        {/* <h1 className="text-xl font-semibold mb-4">Removed Groups</h1> */}
+        {/* Filters */}
+        <div className="flex flex-wrap gap-4 mb-4 items-stretch">
+          <input
+            type="text"
+            placeholder="Search by name..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border px-3 rounded-lg shadow-sm h-10"
+          />
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-4 mb-4">
-        <input
-          type="text"
-          placeholder="Search by name..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border px-3 py-2 rounded-lg shadow-sm"
-        />
+          <select
+            value={selectedAdmin ?? ""}
+            onChange={(e) =>
+              setSelectedAdmin(e.target.value ? Number(e.target.value) : undefined)
+            }
+            className="border px-3 rounded-lg shadow-sm h-10"
+          >
+            <option value="">All Admins</option>
+            {admins.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name}
+              </option>
+            ))}
+          </select>
 
-        <select
-          value={selectedAdmin ?? ""}
-          onChange={(e) => setSelectedAdmin(e.target.value ? Number(e.target.value) : undefined)}
-          className="border px-3 py-2 rounded-lg shadow-sm"
-        >
-          <option value="">All Admins</option>
-          {admins.map((a) => (
-            <option key={a.id} value={a.id}>
-              {a.name}
-            </option>
-          ))}
-        </select>
+          {/* Date Range Picker */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="h-10">
+                {dateRange?.from && dateRange?.to
+                  ? `${dateRange.from.toLocaleDateString()} - ${dateRange.to.toLocaleDateString()}`
+                  : "Select date range"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="range"
+                selected={dateRange}
+                onSelect={setDateRange}
+                numberOfMonths={1}
+              />
+            </PopoverContent>
+          </Popover>
 
-        {/* Date Range Picker */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline">
-              {dateRange?.from && dateRange?.to
-                ? `${dateRange.from.toLocaleDateString()} - ${dateRange.to.toLocaleDateString()}`
-                : "Select date range"}
+          {(dateRange || search || selectedAdmin) && (
+            <Button onClick={() => {
+              setSearch('');
+              setDateRange(undefined);
+              setSelectedAdmin(undefined);
+            }} className="text-center h-9 bg-blue-500 text-white cursor-pointer mt-0.5">
+              Clear
             </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0">
-            <Calendar
-              mode="range"
-              selected={dateRange}
-              onSelect={setDateRange}
-              numberOfMonths={1}
-            />
-          </PopoverContent>
-        </Popover>
-        {dateRange && (
-          <Button variant="ghost" onClick={() => setDateRange(undefined)}>
-            Clear
-          </Button>
-        )}
-      </div>
+          )}
+        </div>
 
-      {/* Table */}
-      <DynamicTable
-        columns={columns}
-        data={formattedData}
-        searchable={false}
-        renderCell={(row, col) => {
-          if (col === "Action") {
-            return (
-              <button
-                onClick={() => handleRestore(row[col])}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
-              >
-                Restore
-              </button>
-            );
-          }
-          return row[col];
-        }}
-      />
-    </div>
+        {/* Table */}
+        <DynamicTable
+          columns={columns}
+          data={formattedData}
+          searchable={false}
+          renderCell={(row, col) => {
+            if (col === "Action") {
+              return (
+                <button
+                  onClick={() => handleRestore(row[col])}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
+                >
+                  Restore
+                </button>
+              );
+            }
+            return row[col];
+          }}
+        />
+      </div>
+    </>
   );
 }

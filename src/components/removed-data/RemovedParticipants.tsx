@@ -4,72 +4,79 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import DynamicTable from "../utils/DynamicTable";
-
-type RemovedParticipant = {
-  id: number;
-  name: string;
-  batchId: number;
-  mobileNumber: string;
-  createdAt: string;
-  removedAt: string;
-  createdBy: string;
-  removedBy: string | null;
-};
-
-type BatchOption = {
-  label: string;
-  batchId: number;
-};
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { DateRange } from "react-day-picker";
+import PageHeading from "../utils/PageHeading";
+// import { DateRangePicker } from "@/components/ui/date-range-picker"; // your wrapper component
 
 export default function RemovedParticipants() {
-  const [participants, setParticipants] = useState<RemovedParticipant[]>([]);
+  const [participants, setParticipants] = useState<any[]>([]);
   const { user } = useAuth();
-  const [batches, setBatches] = useState<BatchOption[]>([]);
-    const [selectedBatch, setSelectedBatch] = useState<number | null>(null);
-  
 
+  const [batches, setBatches] = useState<any[]>([]);
+  const [admins, setAdmins] = useState<any[]>([]);
 
-  // fetch batches 
+  const [search, setSearch] = useState("");
+  const [selectedBatch, setSelectedBatch] = useState<string | null>(null);
+  const [selectedAdmin, setSelectedAdmin] = useState<string | null>(null);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+
+  // Fetch batches
   const fetchBatches = async () => {
-    try {
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_ROOT_URL}/removed-data/batch-ids`,
-        { organizationId: user?.organizationId, type: "participants" }
-      );
-      setBatches(res.data);
-    } catch (err) {
-      console.error("Failed to fetch batches:", err);
-    }
+    const res = await axios.post(
+      `${process.env.NEXT_PUBLIC_ROOT_URL}/removed-data/batch-ids`,
+      { organizationId: user?.organizationId, type: "participants" }
+    );
+    setBatches(res.data || []);
   };
 
+  // Fetch admins
+  const fetchAdmins = async () => {
+    const res = await axios.post(
+      `${process.env.NEXT_PUBLIC_ROOT_URL}/groups/fetch-admin-list`,
+      { organizationId: user?.organizationId }
+    );
+    setAdmins(res.data.admins || []);
+  };
+
+  // Fetch removed participants
   const fetchParticipants = async () => {
-    try {
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_ROOT_URL}/removed-data/removed-participants/fetch-removed-participants`,
-        { organizationId: user?.id, batchId: Number(selectedBatch) }
-      );
-      console.log(res.data.data)
-      setParticipants(res.data.data);
-    } catch (err) {
-      console.error("Failed to fetch participants:", err);
-    }
+    const res = await axios.post(
+      `${process.env.NEXT_PUBLIC_ROOT_URL}/removed-data/removed-participants/fetch-removed-participants`,
+      {
+        organizationId: user?.organizationId,
+        search: search || undefined,
+        batchId: selectedBatch ? Number(selectedBatch) : undefined,
+        adminId: selectedAdmin ? Number(selectedAdmin) : undefined,
+        fromDate: dateRange?.from?.toISOString(),
+        toDate: dateRange?.to?.toISOString(),
+      }
+    );
+    setParticipants(res.data.data || []);
   };
 
   useEffect(() => {
     fetchParticipants();
-    fetchBatches()
-  }, [selectedBatch]);
+  }, [search, selectedAdmin, selectedBatch]);
 
+  useEffect(() => {
+    fetchBatches();
+    fetchAdmins();
+  }, [])
   const handleRestore = async (participantId: number) => {
-    try {
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_ROOT_URL}/removed-data/removed-participants/restore-removed-participants`,
-        { participantId, adminId: user?.id }
-      );
-      fetchParticipants();
-    } catch (err) {
-      console.error("Restore failed:", err);
-    }
+    await axios.post(
+      `${process.env.NEXT_PUBLIC_ROOT_URL}/removed-data/removed-participants/restore-removed-participants`,
+      { participantId, adminId: user?.id }
+    );
+    fetchParticipants();
   };
 
   const columns = [
@@ -84,54 +91,102 @@ export default function RemovedParticipants() {
   ];
 
   const formattedData = participants.map((p) => ({
-    "BatchId": p.batchId,
-    "Name": p.name,
+    BatchId: p.batchId,
+    Name: p.name,
     "Mobile Number": p.mobileNumber,
     "Created At": new Date(p.createdAt).toLocaleString(),
     "Removed At": new Date(p.removedAt).toLocaleString(),
     "Created By": p.createdBy,
     "Removed By": p.removedBy || "-",
-    "Action": p.id, 
+    Action: p.id,
   }));
 
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-semibold mb-4">Removed Participants</h1>
+    <>
+    <PageHeading title="Removed Participant"></PageHeading>
+      <div className="pr-4 pl-4 pb-4">
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-4 mb-4">
+        {/* Search */}
+        <Input
+          placeholder="Search by name or mobile"
+          className="h-10 w-64"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
-         <div className="mb-4">
-        <select
-          className="border px-3 py-2 rounded w-full md:w-1/3"
+        {/* Batch Select */}
+        <Select
           value={selectedBatch ?? ""}
-          onChange={(e) => {
-            setSelectedBatch(e.target.value ? Number(e.target.value) : null);
+          onValueChange={(val) => setSelectedBatch(val || null)}
+        >
+          <SelectTrigger className="w-48 h-10">
+            <SelectValue placeholder="All Batches" />
+          </SelectTrigger>
+          <SelectContent>
+            {batches.map((batch) => (
+              <SelectItem key={batch.batchId} value={String(batch.batchId)}>
+                {batch.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Admin Select */}
+        <Select
+          value={selectedAdmin ?? ""}
+          onValueChange={(val) => setSelectedAdmin(val || null)}
+        >
+          <SelectTrigger className="w-48 h-10">
+            <SelectValue placeholder="Select Admin" />
+          </SelectTrigger>
+          <SelectContent>
+            {admins.map((admin) => (
+              <SelectItem key={admin.id} value={String(admin.id)}>
+                {admin.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Date Range Picker */}
+        {/* <DateRangePicker date={dateRange} onDateChange={setDateRange} /> */}
+
+        {/* Actions */}
+        <Button onClick={fetchParticipants} className="h-10">
+          Apply Filter
+        </Button>
+        <Button
+          variant="outline"
+          className="h-10"
+          onClick={() => {
+            setSearch("");
+            setSelectedBatch(null);
+            setSelectedAdmin(null);
+            setDateRange(undefined);
+            fetchParticipants();
           }}
         >
-          <option value="">All Batches</option>
-          {batches.map((batch) => (
-            <option key={batch.batchId} value={batch.batchId}>
-              {batch.label}
-            </option>
-          ))}
-        </select>
+          Clear
+        </Button>
       </div>
+
+      {/* Table */}
       <DynamicTable
         columns={columns}
         data={formattedData}
-        searchable={true}
-        renderCell={(row, col) => {
-          if (col === "Action") {
-            return (
-              <button
-                onClick={() => handleRestore(row[col])}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded cursor-pointer"
-              >
-                Restore
-              </button>
-            );
-          }
-          return row[col];
-        }}
+        searchable={false}
+        renderCell={(row, col) =>
+          col === "Action" ? (
+            <Button size="sm" onClick={() => handleRestore(row[col])}>
+              Restore
+            </Button>
+          ) : (
+            row[col]
+          )
+        }
       />
     </div>
+    </>
   );
 }

@@ -304,7 +304,7 @@ function AdminDashboard({
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-6 overflow-auto">
+        <div className="flex-1 pl-6 pr-6 pb-6 overflow-auto">
           <div>{children}</div>
         </div>
       </div>

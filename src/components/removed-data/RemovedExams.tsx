@@ -13,7 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
-import {format} from 'date-fns'
+import { format } from 'date-fns'
+import PageHeading from "../utils/PageHeading";
 
 type RemovedExam = {
   id: number;
@@ -121,123 +122,130 @@ export default function RemovedExams() {
   }));
 
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-semibold mb-4">Removed Exams</h1>
+    <>
+      <PageHeading title="Removed Exam"></PageHeading>
+      <div className="p-4">
 
-      {/* Filters same as ManageExam */}
-      <div className="flex flex-wrap items-center gap-3 mb-6">
-        <input
-          type="text"
-          placeholder="Search exams..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-[200px] px-4 py-2 border border-gray-300 rounded-lg shadow-sm"
-        />
+        {/* Filters same as ManageExam */}
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+          <input
+            type="text"
+            placeholder="Search exams..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-[200px] px-4 border border-gray-300 rounded-lg shadow-sm h-10"
+          />
 
-        <input
-          type="text"
-          placeholder="Exam Code..."
-          value={examCode}
-          onChange={(e) => setExamCode(e.target.value)}
-          className="w-[150px] px-4 py-2 border border-gray-300 rounded-lg shadow-sm"
-        />
+          <input
+            type="text"
+            placeholder="Exam Code..."
+            value={examCode}
+            onChange={(e) => setExamCode(e.target.value)}
+            className="w-[150px] px-4 border border-gray-300 rounded-lg shadow-sm h-10"
+          />
 
-        <Select onValueChange={(val: any) => setStatus(val)} value={status || ""}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Scheduled">Scheduled</SelectItem>
-            <SelectItem value="Active">Active</SelectItem>
-            <SelectItem value="Inactive">Inactive</SelectItem>
-            <SelectItem value="Completed">Completed</SelectItem>
-          </SelectContent>
-        </Select>
+          <Select onValueChange={(val: any) => setStatus(val)} value={status || ""}>
+            <SelectTrigger className="w-[160px] h-10">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Scheduled">Scheduled</SelectItem>
+              <SelectItem value="Active">Active</SelectItem>
+              <SelectItem value="Inactive">Inactive</SelectItem>
+              <SelectItem value="Completed">Completed</SelectItem>
+            </SelectContent>
+          </Select>
 
-        <Select onValueChange={(val: any) => setSelectedAdmin(Number(val))} value={selectedAdmin?.toString() || ""}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by Admin" />
-          </SelectTrigger>
-          <SelectContent>
-            {admins.map((a) => (
-              <SelectItem key={a.id} value={a.id.toString()}>
-                {a.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <Select onValueChange={(val: any) => setSelectedAdmin(Number(val))} value={selectedAdmin?.toString() || ""}>
+            <SelectTrigger className="w-[180px] h-10">
+              <SelectValue placeholder="Filter by Admin" />
+            </SelectTrigger>
+            <SelectContent>
+              {admins.map((a) => (
+                <SelectItem key={a.id} value={a.id.toString()}>
+                  {a.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        {/* Date Range */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className="w-[220px] justify-start text-left font-normal">
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {dateRange?.from ? (
-                dateRange.to ? (
-                  <>
-                    {dateRange.from.toLocaleDateString()} - {dateRange.to.toLocaleDateString()}
-                  </>
-                ) : (
-                  dateRange.from.toLocaleDateString()
-                )
-              ) : (
-                <span>Pick a date range</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="range"
-              selected={dateRange}
-              onSelect={(range) => {
-                setDateRange(range);
-                fetchRemovedExams();
-              }}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
-
-        <Button onClick={fetchRemovedExams} className="bg-blue-500 text-white">
-          Apply
-        </Button>
-
-        <Button
-          variant="outline"
-          onClick={() => {
-            setSearchQuery("");
-            setExamCode("");
-            setStatus(null);
-            setDateRange(undefined);
-            setSelectedAdmin(null);
-            fetchRemovedExams();
-          }}
-        >
-          Clear
-        </Button>
-      </div>
-
-      {/* Table */}
-      <DynamicTable
-        columns={columns}
-        data={formattedData}
-        searchable={true}
-        renderCell={(row, col) => {
-          if (col === "Action") {
-            return (
-              <button
-                onClick={() => handleRestore(row[col])}
-                className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded"
+          {/* Date Range */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-[220px] justify-start text-left font-normal h-10"
               >
-                Restore
-              </button>
-            );
-          }
-          return row[col];
-        }}
-      />
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dateRange?.from ? (
+                  dateRange.to ? (
+                    <>
+                      {dateRange.from.toLocaleDateString()} - {dateRange.to.toLocaleDateString()}
+                    </>
+                  ) : (
+                    dateRange.from.toLocaleDateString()
+                  )
+                ) : (
+                  <span>Pick a date range</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="range"
+                selected={dateRange}
+                onSelect={(range) => {
+                  setDateRange(range);
+                  fetchRemovedExams();
+                }}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
 
-      <ToastContainer position="top-center" />
-    </div>
+          <Button onClick={fetchRemovedExams} className="bg-blue-500 text-white h-10">
+            Apply
+          </Button>
+
+          <Button
+            variant="outline"
+            className="h-10"
+            onClick={() => {
+              setSearchQuery("");
+              setExamCode("");
+              setStatus(null);
+              setDateRange(undefined);
+              setSelectedAdmin(null);
+              fetchRemovedExams();
+            }}
+          >
+            Clear
+          </Button>
+        </div>
+
+
+        {/* Table */}
+        <DynamicTable
+          columns={columns}
+          data={formattedData}
+          searchable={true}
+          renderCell={(row, col) => {
+            if (col === "Action") {
+              return (
+                <button
+                  onClick={() => handleRestore(row[col])}
+                  className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded"
+                >
+                  Restore
+                </button>
+              );
+            }
+            return row[col];
+          }}
+        />
+
+        <ToastContainer position="top-center" />
+      </div>
+    </>
   );
 }

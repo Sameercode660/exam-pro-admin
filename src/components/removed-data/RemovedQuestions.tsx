@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import DynamicTable from "../utils/DynamicTable";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import PageHeading from "../utils/PageHeading";
 
 type RemovedQuestion = {
   id: number;
@@ -90,8 +91,10 @@ export default function RemovedQuestions() {
   const formattedData = questions.map((q) => ({  "BatchId": q.batchId,"Title": q.title,  "Created By": q.createdBy, "Removed By": q.removedBy || "-", "Created At": new Date(q.createdAt).toLocaleString(), "Removed At": new Date(q.updatedAt).toLocaleString(), "Action": q.id, }));
 
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-semibold mb-4">Removed Questions</h1>
+    <>
+    <PageHeading title="Removed Questions"></PageHeading>
+      <div className="p-4">
+      {/* <h1 className="text-xl font-semibold mb-4">Removed Questions</h1> */}
 
       {/* Dropdown for batches */}
       <div className="mb-4">
@@ -131,5 +134,6 @@ export default function RemovedQuestions() {
       />
       <ToastContainer position="top-center"></ToastContainer>
     </div>
+    </>
   );
 }

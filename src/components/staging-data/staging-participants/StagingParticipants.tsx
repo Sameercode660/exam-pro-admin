@@ -5,46 +5,43 @@ import DynamicTable from "@/components/utils/DynamicTable";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "react-toastify";
-
+import PageHeading from "@/components/utils/PageHeading";
 
 const STAGING_STATUSES = ["PENDING", "VALID", "INVALID", "DUPLICATE", "IMPORTED"];
 
 interface UploadTimestamp {
     raw: string;
     formatted: string;
-    batchId: number
+    batchId: number;
 }
 
 export default function StagingParticipants() {
     const [uploadTimestamps, setUploadTimestamps] = useState<UploadTimestamp[]>([]);
-    const [selectedTimestamp, setSelectedTimestamp] = useState<string | null>("");
+    const [selectedTimestamp, setSelectedTimestamp] = useState<string | null>(null);
     const [selectedStatus, setSelectedStatus] = useState("");
     const [tableData, setTableData] = useState<Record<string, any>[]>([]);
     const { user } = useAuth();
     const organizationId = user?.organizationId;
-    const [selectedBatchId, setSelectedBatchId] = useState<string | null>('')
+    const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
     const [selectedValue, setSelectedValue] = useState("");
+    const [search, setSearch] = useState("");
 
     const fetchTimestamps = async () => {
         try {
-            const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/staging-data/staging-participants/upload-timestamp`, {
-                organizationId,
-            });
-
+            const res = await axios.post(
+                `${process.env.NEXT_PUBLIC_ROOT_URL}/staging-data/staging-participants/upload-timestamp`,
+                { organizationId }
+            );
             const data = res.data?.uploadTimestamps;
-            console.log(res.data?.uploadTimestamps)
             if (Array.isArray(data)) {
                 setUploadTimestamps(data);
             } else {
-                console.error("Unexpected timestamp response:", data);
                 toast.error("Failed to fetch timestamps: Invalid response format.");
             }
         } catch (err) {
-            console.error("Error fetching participant timestamps:", err);
             toast.error("Error fetching upload timestamps.");
         }
     };
-
 
     const fetchFilteredData = async () => {
         if (!organizationId) {
@@ -53,18 +50,18 @@ export default function StagingParticipants() {
         }
 
         try {
-            const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/staging-data/staging-participants/fetch-participants`, {
-                organizationId,
-                status: selectedStatus || undefined,
-                batchId: Number(selectedBatchId) || undefined,
-            });
-
-            console.log(res.data)
+            const res = await axios.post(
+                `${process.env.NEXT_PUBLIC_ROOT_URL}/staging-data/staging-participants/fetch-participants`,
+                {
+                    organizationId,
+                    status: selectedStatus || undefined,
+                    batchId: Number(selectedBatchId) || undefined,
+                    search: search || undefined,
+                }
+            );
 
             const responseData = res.data?.data;
-
             if (!Array.isArray(responseData)) {
-                console.error("Unexpected response format. 'data' is not an array:", responseData);
                 toast.error("Unexpected response. Couldn't load participants.");
                 setTableData([]);
                 return;
@@ -91,7 +88,6 @@ export default function StagingParticipants() {
 
             setTableData(mapped);
         } catch (err) {
-            console.error("Error fetching participant data:", err);
             toast.error("Failed to fetch participant data.");
             setTableData([]);
         }
@@ -107,66 +103,104 @@ export default function StagingParticipants() {
         if (organizationId) {
             fetchFilteredData();
         }
-    }, [selectedStatus, selectedTimestamp]);
+    }, [selectedStatus, selectedTimestamp, selectedBatchId]);
 
     return (
-        <div className="p-4 space-y-4">
-            <div className="flex flex-wrap gap-4">
-                <select
-                    value={selectedStatus}
-                    onChange={(e) => setSelectedStatus(e.target.value)}
-                    className="p-2 border rounded"
-                >
-                    <option value="">Filter by Status</option>
-                    {STAGING_STATUSES.map((status) => (
-                        <option key={status} value={status}>
-                            {status}
-                        </option>
-                    ))}
-                </select>
+        <>
+            <PageHeading title="Staging Participants" />
 
-                <select
-                    value={selectedValue}
-                    onChange={(e) => {
-                        const value = e.target.value;
-                        setSelectedValue(value);
+            <div className="p-4 space-y-4">
+                {/* Filters Row */}
+                <div className="flex flex-wrap gap-4 items-center">
+                    {/* Status */}
+                    <select
+                        value={selectedStatus}
+                        onChange={(e) => setSelectedStatus(e.target.value)}
+                        className="p-2 border rounded h-10"
+                    >
+                        <option value="">Select Status</option>
+                        {STAGING_STATUSES.map((status) => (
+                            <option key={status} value={status}>
+                                {status}
+                            </option>
+                        ))}
+                    </select>
 
-                        if (value) {
-                            const { batchId, raw } = JSON.parse(value);
-                            setSelectedBatchId(batchId);
-                            setSelectedTimestamp(raw);
-                        } else {
-                            // reset if "Filter by BatchId" is chosen
-                            setSelectedBatchId(null);
-                            setSelectedTimestamp(null);
-                        }
-                    }}
-                    className="p-2 border rounded"
-                >
-                    <option value="">Filter by BatchId</option>
-                    {uploadTimestamps.map((ts, idx) => (
-                        <option
-                            key={idx}
-                            value={JSON.stringify({ batchId: ts.batchId, raw: ts.raw })}
+                    {/* Batch */}
+                    <select
+                        value={selectedValue}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            setSelectedValue(value);
+                            if (value) {
+                                const { batchId, raw } = JSON.parse(value);
+                                setSelectedBatchId(batchId);
+                                setSelectedTimestamp(raw);
+                            } else {
+                                setSelectedBatchId(null);
+                                setSelectedTimestamp(null);
+                            }
+                        }}
+                        className="p-2 border rounded h-10"
+                    >
+                        <option value="">Select BatchId</option>
+                        {uploadTimestamps.map((ts, idx) => (
+                            <option
+                                key={idx}
+                                value={JSON.stringify({ batchId: ts.batchId, raw: ts.raw })}
+                            >
+                                {`batchId-${ts.batchId} - ${ts.formatted}`}
+                            </option>
+                        ))}
+                    </select>
+
+                    {/* Search Bar */}
+                    <input
+                        type="text"
+                        placeholder="Search by name, email, or mobile"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="border rounded px-3 h-10 w-full md:w-64"
+                    />
+
+                    {/* Apply */}
+                    <button
+                        onClick={fetchFilteredData}
+                        className="px-4 bg-blue-600 text-white rounded hover:bg-blue-700 h-10"
+                    >
+                        Apply
+                    </button>
+                    {
+                        (selectedBatchId || selectedStatus || search) && (<button
+                            onClick={() => {
+                                setSelectedBatchId('');
+                                setSelectedStatus('');
+                                setSearch('');
+                            }}
+                            className="px-4 bg-blue-600 text-white rounded hover:bg-blue-700 h-10"
                         >
-                            {`batchId-${ts.batchId} - ${ts.formatted}`}
-                        </option>
-                    ))}
-                </select>
+                            clear
+                        </button>)
+                    }
+                </div>
 
-                <button
-                    onClick={fetchFilteredData}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                    Apply Filter
-                </button>
+                {/* Table */}
+                <DynamicTable
+                    columns={[
+                        "ID",
+                        "BatchId",
+                        "Name",
+                        "Email",
+                        "Mobile",
+                        "Status",
+                        "ErrorMessage",
+                        "Admin",
+                        "CreatedAt",
+                    ]}
+                    data={tableData}
+                    searchable={false}
+                />
             </div>
-
-            <DynamicTable
-                columns={["ID", "BatchId", "Name", "Email", "Mobile", "Status", "ErrorMessage", "Admin", "CreatedAt"]}
-                data={tableData}
-                searchable
-            />
-        </div>
+        </>
     );
 }

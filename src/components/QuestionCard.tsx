@@ -50,7 +50,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestions, 
   const router = useRouter();
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  const {user} = useAuth();
+  const { user } = useAuth();
   const adminId = user?.id;
 
   const handleDelete = async (id: number | null) => {
@@ -61,7 +61,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestions, 
       const res = await fetch(`${process.env.NEXT_PUBLIC_ROOT_URL}/questions/delete-question`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ questionId: id, adminId }) 
+        body: JSON.stringify({ questionId: id, adminId })
       });
 
       const result = await res.json();
@@ -99,15 +99,15 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestions, 
                 {question.topic.name}
               </span>
               <span
-                className={`text-xs font-semibold px-3 py-1 rounded-full truncate whitespace-nowrap ${
-                  question.difficulty === "EASY"
+                className={`text-xs font-semibold px-3 py-1 rounded-full truncate whitespace-nowrap ${question.difficulty === "EASY"
                     ? "bg-green-100 text-green-700"
                     : question.difficulty === "MEDIUM"
-                    ? "bg-yellow-100 text-yellow-700"
-                    : "bg-red-100 text-red-700"
-                }`}
+                      ? "bg-yellow-100 text-yellow-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
               >
-                {question.difficulty}
+                <span>{question.difficulty.charAt(0).toUpperCase() + question.difficulty.slice(1).toLowerCase()}</span>
+
               </span>
               <span className="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full truncate whitespace-nowrap max-w-[100px]">
                 {new Date(question.createdAt).toLocaleDateString()}
@@ -122,11 +122,10 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestions, 
               {question.options.map((option) => (
                 <li
                   key={option.id}
-                  className={`px-3 py-2 rounded-lg text-sm ${
-                    option.isCorrect
+                  className={`px-3 py-2 rounded-lg text-sm ${option.isCorrect
                       ? "bg-green-50 text-green-800 font-medium border border-green-200"
                       : "text-gray-700"
-                  }`}
+                    }`}
                 >
                   {option.text}
                 </li>

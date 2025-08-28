@@ -22,8 +22,8 @@ function AddQuestion() {
   const [option2, setOption2] = useState('');
   const [option3, setOption3] = useState('');
   const [option4, setOption4] = useState('');
-  const [correctOption, setCorrectOption] = useState('1');
-  const [difficultyLevel, setDifficultyLevel] = useState('EASY');
+  const [correctOption, setCorrectOption] = useState('');
+  const [difficultyLevel, setDifficultyLevel] = useState('');
   const { user } = useAuth();
   const adminId = user?.id;
   const router = useRouter();
@@ -146,7 +146,7 @@ function AddQuestion() {
         redirectPath='/home/questions/manage-questions'
       />
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Add Questions</h2>
+        <h2 className="text-2xl font-bold text-gray-800">Create Questions</h2>
 
         <a
           href="https://docs.google.com/spreadsheets/d/1wL7cgUMj9Nbi_sS8RWn_wMLZVyUCqgYy/export?format=xlsx"
@@ -191,7 +191,7 @@ function AddQuestion() {
 
       {/* Single Question Form Section */}
       <div className="space-y-5">
-        <h3 className="text-lg font-semibold text-gray-700">Add Single Question</h3>
+        <h3 className="text-lg font-semibold text-gray-700">Add Question</h3>
 
         <div className="space-y-4">
 
@@ -256,10 +256,11 @@ function AddQuestion() {
               onChange={(e) => setCorrectOption(e.target.value)}
               className="w-full px-4 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
-              <option value="1">Correct Option: 1</option>
-              <option value="2">Correct Option: 2</option>
-              <option value="3">Correct Option: 3</option>
-              <option value="4">Correct Option: 4</option>
+              <option value="">Correct Option</option>
+              <option value="1">Option: 1</option>
+              <option value="2">Option: 2</option>
+              <option value="3">Option: 3</option>
+              <option value="4">Option: 4</option>
             </select>
 
             <select
@@ -267,9 +268,10 @@ function AddQuestion() {
               onChange={(e) => setDifficultyLevel(e.target.value)}
               className="w-full px-4 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
-              <option value="EASY">Difficulty: Easy</option>
-              <option value="MEDIUM">Difficulty: Medium</option>
-              <option value="HARD">Difficulty: Hard</option>
+              <option value="">Difficulty Level</option>
+              <option value="EASY">Easy</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="HARD">Hard</option>
             </select>
           </div>
 

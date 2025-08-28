@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import QuestionCard from '@/components/QuestionCard';
 import { useAuth } from '@/context/AuthContext';
+import PageHeading from './utils/PageHeading';
 
 const ManageQuestionBank = () => {
   const [categories, setCategories] = useState([]);
@@ -136,9 +137,9 @@ const ManageQuestionBank = () => {
   }, [selectedCategory, selectedTopic, difficulty, page]);
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Manage Question Bank</h1>
-
+   <>
+    <PageHeading title='Manage Questions'></PageHeading>
+     <div className="pr-6 pl-6 pb-6">
       {loading && <p>Loading...</p>}
       {error && <p className="text-red-500">{error}</p>}
 
@@ -248,6 +249,7 @@ const ManageQuestionBank = () => {
         </button>
       </div>
     </div>
+   </>
   );
 };
 

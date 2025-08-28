@@ -128,7 +128,7 @@ function CreateExam() {
           />
         )}
       </div>
-      <h2 className="text-2xl font-bold text-gray-800">Create New Exam</h2>
+      <h2 className="text-2xl font-bold text-gray-800 text-center">Create Exam</h2>
 
       <form onSubmit={handleSubmit} className="space-y-5">
 

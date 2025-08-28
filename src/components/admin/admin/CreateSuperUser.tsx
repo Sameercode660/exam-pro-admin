@@ -116,7 +116,7 @@ const CreateSuperUser = () => {
 
   return (
     <div className="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-md mt-6">
-      <h2 className="text-xl font-bold mb-4">Create SuperUser</h2>
+      <h2 className="text-xl font-bold mb-4 text-center">Create SuperUser</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           name="name"
@@ -141,8 +141,8 @@ const CreateSuperUser = () => {
         />
 
         {/* Styled <p> instead of input */}
-        <p className="w-full border px-4 py-2 rounded bg-gray-100 text-gray-700">
-          {form.password || 'Password will be generated...'}
+        <p className="w-full border px-4 py-2 rounded bg-gray-100 text-gray-700 ">
+          {form.password || <span className='opacity-0'>password</span>}
         </p>
 
         <button

@@ -138,7 +138,7 @@ const CreateGroupForm = () => {
 
   return (
     <div className="max-w-3xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-md border">
-      <h2 className="text-2xl font-semibold mb-6 text-gray-800">Create New Group</h2>
+      <h2 className="text-2xl font-semibold mb-6 text-gray-800">Create Group</h2>
 
       {error && <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded">{error}</div>}
       {success && <div className="mb-4 p-3 bg-green-100 border border-green-300 text-green-700 rounded">{success}</div>}

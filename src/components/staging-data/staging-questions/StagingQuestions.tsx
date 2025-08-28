@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import DynamicTable from "@/components/utils/DynamicTable";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
+import PageHeading from "@/components/utils/PageHeading";
 
 const STAGING_STATUSES = ["PENDING", "VALID", "INVALID", "DUPLICATE", "IMPORTED"];
 
@@ -108,7 +109,9 @@ export default function StagingQuestions() {
   }, [selectedStatus, selectedTimestamp]);
 
   return (
-    <div className="p-4 space-y-4">
+   <>
+    <PageHeading title="Staging Questions"></PageHeading>
+     <div className="pr-4 pl-4 pb-4 space-y-4">
       <div className="flex flex-wrap gap-4">
         <select
           value={selectedStatus}
@@ -182,5 +185,6 @@ export default function StagingQuestions() {
         searchable
       />
     </div>
+   </>
   );
 }
