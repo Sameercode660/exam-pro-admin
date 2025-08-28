@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import axios from 'axios';
 import QuestionCard from '@/components/QuestionCard';
 import { useAuth } from '@/context/AuthContext';
 import PageHeading from './utils/PageHeading';
+import { Button } from '@headlessui/react';
 
 const ManageQuestionBank = () => {
   const [categories, setCategories] = useState([]);
@@ -22,8 +23,10 @@ const ManageQuestionBank = () => {
   const [batches, setBatches] = useState([]);
   const [selectedBatchId, setSelectedBatchId] = useState<number | null>(null);
   const organizationId = user?.organizationId;
+  const [totalQuestions, setTotalQuestions] = useState(0);
 
-  const limit = 10; // Number of questions per page
+  const [limit, setLimit] = useState(10);
+ 
 
 
 
@@ -45,8 +48,9 @@ const ManageQuestionBank = () => {
   const fetchCategories = async () => {
     setError('')
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/filtering/fetch-category`, { adminId });
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/filtering/fetch-category`, { organizationId });
       setCategories(response.data || []);
+      console.log(response.data)
     } catch (err) {
       setError('Failed to fetch categories. Please try again later.');
       console.error(err);
@@ -58,8 +62,9 @@ const ManageQuestionBank = () => {
     setError('');
 
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/filtering/fetch-topics`, { categoryId, adminId });
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/filtering/fetch-topics`, { categoryId, organizationId });
       setTopics(response.data || []);
+      console.log(response.data)
     } catch (err) {
       setError('Failed to fetch topics. Please try again later.');
       console.error(err);
@@ -84,6 +89,7 @@ const ManageQuestionBank = () => {
         },
       });
       setQuestions(response.data.response || []);
+      setTotalQuestions(response.data.total || 0);
     } catch (err) {
       setError('Failed to fetch questions. Please try again later.');
       console.error(err);
@@ -122,6 +128,10 @@ const ManageQuestionBank = () => {
     fetchBatches();
   }, []);
 
+  useEffect(() => {
+    fetchQuestions();
+  }, [limit])
+
   // Fetch topics when a category is selected
   useEffect(() => {
     if (selectedCategory !== null) {
@@ -137,119 +147,165 @@ const ManageQuestionBank = () => {
   }, [selectedCategory, selectedTopic, difficulty, page]);
 
   return (
-   <>
-    <PageHeading title='Manage Questions'></PageHeading>
-     <div className="pr-6 pl-6 pb-6">
-      {loading && <p>Loading...</p>}
-      {error && <p className="text-red-500">{error}</p>}
+    <>
+      <PageHeading title='Manage Questions'></PageHeading>
+      <div className="pr-6 pl-6 pb-6">
+        {/* {loading && <p>Loading...</p>}
+        {error && <p className="text-red-500">{error}</p>} */}
 
-      {/* Search Bar */}
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Search by question title..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="p-2 border rounded w-full"
-        />
-        <button
-          onClick={searchQuestions}
-          className="px-4 py-2 mt-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 m-1"
-        >
-          Search
-        </button>
-        <button
-          onClick={() => {
-            setSearchTerm('')
-            fetchQuestions()
-          }}
-          className="px-4 py-2 mt-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 m-1"
-        >
-          All Question
-        </button>
+        {/* Search Bar */}
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="Search by question title..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="p-2 border rounded w-full"
+          />
+          <button
+            onClick={searchQuestions}
+            className="px-4 py-2 mt-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 m-1"
+          >
+            Search
+          </button>
+          <button
+            onClick={() => {
+              setSearchTerm('')
+              fetchQuestions()
+            }}
+            className="px-4 py-2 mt-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 m-1"
+          >
+            All Question
+          </button>
+        </div>
+
+        {/* Filters */}
+        <div className="flex space-x-4 mb-4">
+          <select
+            value={selectedCategory || ''}
+            onChange={(e) => setSelectedCategory(Number(e.target.value) || null)}
+            className="p-2 border rounded max-w-[180px] truncate"
+          >
+            <option value="">Category</option>
+            {categories.map((cat: any) => (
+              <option key={cat.id} value={cat.id} className="truncate" title={cat.name}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={selectedTopic || ''}
+            onChange={(e) => setSelectedTopic(Number(e.target.value) || null)}
+            className="p-2 border rounded max-w-[180px] truncate"
+            disabled={!topics.length}
+          >
+            <option value="">Topic</option>
+            {topics.map((topic: any) => (
+              <option
+                key={topic.id}
+                value={topic.id}
+                title={topic.name}
+                className="truncate"
+              >
+                {topic.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={difficulty || ''}
+            onChange={(e) => setDifficulty(e.target.value || null)}
+            className="p-2 border rounded"
+          >
+            <option value="">Difficulty</option>
+            <option value="EASY">Easy</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="HARD">Hard</option>
+          </select>
+          <select
+            value={selectedBatchId || ''}
+            onChange={(e) => setSelectedBatchId(Number(e.target.value) || null)}
+            className="p-2 border rounded"
+          >
+            <option value="">Batch</option>
+            {batches.map((batch: any) => (
+              <option key={batch.batchId} value={batch.batchId}>
+                {`BatchId-${batch.batchId} - (${new Date(batch.batch.uploadedAt).toLocaleString()})`}
+              </option>
+            ))}
+          </select>
+
+          {
+            (selectedCategory || selectedBatchId || searchTerm || selectedTopic) && (
+              <Button
+                className="bg-blue-500 text-white cursor-pointer w-20 h-10 rounded-md"
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedBatchId(null);
+                  setSelectedCategory(null);
+                  setSelectedTopic(null);
+                }}
+              >Clear</Button>
+            )
+          }
+        </div>
+
+
+        {/* Question List */}
+        {!loading && !error && questions.length > 0 && (
+          <QuestionCard questions={questions} fetchQuestions={fetchQuestions} page={page} limit={limit} />
+        )}
+        {!loading && !error && questions.length === 0 && (
+          <p>No questions available. Please refine your filters.</p>
+        )}
+
+
+        {/* Pagination */}
+        <div className="flex justify-between items-center mt-4">
+          <div className="flex items-center space-x-2">
+            {/* <label htmlFor="limit" className="text-sm font-medium">Records per page:</label> */}
+            <select
+              id="limit"
+              value={limit}
+              onChange={(e) => {
+                setLimit(Number(e.target.value));
+                setPage(1); // reset to first page when changing limit
+              }}
+              className="p-2 border rounded"
+            >
+              {[10, 20, 50, 100, 200, 500].map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              disabled={page === 1}
+            >
+              Previous
+            </button>
+
+            <span>
+              Page {page} of {totalQuestions > 0 ? Math.ceil(totalQuestions / limit) : 1}
+            </span>
+
+            <button
+              onClick={() => setPage((prev) => prev + 1)}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              disabled={page >= Math.ceil(totalQuestions / limit)}
+            >
+              Next
+            </button>
+          </div>
+        </div>
       </div>
-
-      {/* Filters */}
-      <div className="flex space-x-4 mb-4">
-        <select
-          value={selectedCategory || ''}
-          onChange={(e) => setSelectedCategory(Number(e.target.value) || null)}
-          className="p-2 border rounded"
-        >
-          <option value="">Category</option>
-          {categories.map((cat: any) => (
-            <option key={cat.id} value={cat.id}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={selectedTopic || ''}
-          onChange={(e) => setSelectedTopic(Number(e.target.value) || null)}
-          className="p-2 border rounded"
-          disabled={!topics.length}
-        >
-          <option value="">Topic</option>
-          {topics.map((topic: any) => (
-            <option key={topic.id} value={topic.id}>
-              {topic.name}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={difficulty || ''}
-          onChange={(e) => setDifficulty(e.target.value || null)}
-          className="p-2 border rounded"
-        >
-          <option value="">Difficulty</option>
-          <option value="EASY">Easy</option>
-          <option value="MEDIUM">Medium</option>
-          <option value="HARD">Hard</option>
-        </select>
-        <select
-          value={selectedBatchId || ''}
-          onChange={(e) => setSelectedBatchId(Number(e.target.value) || null)}
-          className="p-2 border rounded"
-        >
-          <option value="">Batch</option>
-          {batches.map((batch: any) => (
-            <option key={batch.batchId} value={batch.batchId}>
-              {`BatchId-${batch.batchId} - (${new Date(batch.batch.uploadedAt).toLocaleString()})`}
-            </option>
-          ))}
-        </select>
-      </div>
-
-
-      {/* Question List */}
-      {!loading && !error && questions.length > 0 && (
-        <QuestionCard questions={questions} fetchQuestions={fetchQuestions} page={page} />
-      )}
-      {!loading && !error && questions.length === 0 && (
-        <p>No questions available. Please refine your filters.</p>
-      )}
-
-      {/* Pagination */}
-      <div className="flex justify-between mt-4">
-        <button
-          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          disabled={page === 1}
-        >
-          Previous
-        </button>
-        <button
-          onClick={() => setPage((prev) => prev + 1)}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          disabled={questions.length < limit}
-        >
-          Next
-        </button>
-      </div>
-    </div>
-   </>
+    </>
   );
 };
 

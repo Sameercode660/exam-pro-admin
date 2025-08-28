@@ -209,7 +209,7 @@ function ManageExam() {
           </Button>
 
           <Button
-            className="bg-blue-500 text-white cursor-pointer"
+            className="bg-blue-500 text-white cursor-pointer "
             onClick={() => {
               setSearchQuery('');
               setExamCode('');

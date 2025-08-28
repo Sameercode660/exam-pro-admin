@@ -44,9 +44,10 @@ interface QuestionCardProps {
   questions: QuestionResponse[];
   fetchQuestions: (currentPage: number) => Promise<void>;
   page: number;
+  limit: number;
 }
 
-const QuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestions, page }) => {
+const QuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestions, page, limit }) => {
   const router = useRouter();
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -80,7 +81,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestions, 
 
   return (
     <div className="p-6 space-y-6">
-      {questions.map((question) => (
+      {questions.map((question, qIndex) => (
         <div
           key={question.id}
           className="bg-white shadow-md rounded-xl p-6 border border-gray-200 w-full"
@@ -88,22 +89,26 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestions, 
           {/* Header: Question and Metadata */}
           <div className="flex justify-between items-center gap-4 mb-4 w-full overflow-hidden">
             <h2 className="text-lg font-semibold text-gray-800 truncate max-w-[60%] whitespace-nowrap">
-              {question.text}
+              {(page - 1) * limit + (qIndex + 1)}. {question.text}
             </h2>
 
             <div className="flex items-center gap-2 flex-shrink-0 min-w-0 overflow-hidden">
-              <span className="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full truncate whitespace-nowrap max-w-[130px]">
+              <span className="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full truncate whitespace-nowrap max-w-[130px]"
+                title={question.category.name}
+              >
                 {question.category.name}
               </span>
-              <span className="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full truncate whitespace-nowrap max-w-[130px]">
+              <span className="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full truncate whitespace-nowrap max-w-[130px]"
+                title={question.topic.name}
+              >
                 {question.topic.name}
               </span>
               <span
                 className={`text-xs font-semibold px-3 py-1 rounded-full truncate whitespace-nowrap ${question.difficulty === "EASY"
-                    ? "bg-green-100 text-green-700"
-                    : question.difficulty === "MEDIUM"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : "bg-red-100 text-red-700"
+                  ? "bg-green-100 text-green-700"
+                  : question.difficulty === "MEDIUM"
+                    ? "bg-yellow-100 text-yellow-700"
+                    : "bg-red-100 text-red-700"
                   }`}
               >
                 <span>{question.difficulty.charAt(0).toUpperCase() + question.difficulty.slice(1).toLowerCase()}</span>
@@ -117,17 +122,17 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestions, 
 
           {/* Options */}
           <div className="mb-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Options:</h3>
+            {/* <h3 className="text-sm font-medium text-gray-700 mb-2">Options:</h3> */}
             <ul className="space-y-1">
-              {question.options.map((option) => (
+              {question.options.map((option, oIndex) => (
                 <li
                   key={option.id}
                   className={`px-3 py-2 rounded-lg text-sm ${option.isCorrect
-                      ? "bg-green-50 text-green-800 font-medium border border-green-200"
-                      : "text-gray-700"
+                    ? "bg-green-50 text-green-800 font-medium border border-green-200"
+                    : "text-gray-700"
                     }`}
                 >
-                  {option.text}
+                  {oIndex + 1}. {option.text}
                 </li>
               ))}
             </ul>

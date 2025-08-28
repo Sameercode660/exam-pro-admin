@@ -21,11 +21,11 @@ const ExamDetails = () => {
   const [difficulty, setDifficulty] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const { examId } = useParams();
-  const {user} = useAuth();
+  const { user } = useAuth();
   const adminId = user?.id;
+  const [totalQuestions, setTotalQuestions] = useState(0);
 
-  const limit = 10; // Number of questions per page
-
+  const [limit, setLimit] = useState(10);
   // Fetch Categories
   const fetchCategories = async () => {
     setError('');
@@ -62,6 +62,7 @@ const ExamDetails = () => {
       });
       console.log(response.data)
       setQuestions(response.data.questions || []);
+      setTotalQuestions(response.data.questions.length || 0)
       setFilteredQuestions(response.data.questions || []);
     } catch (err) {
       console.error('Error fetching exam questions:', err);
@@ -107,6 +108,10 @@ const ExamDetails = () => {
     fetchCategories();
   }, []);
 
+  useEffect(() => {
+    fetchExamQuestions();
+  }, [limit])
+
   // Fetch topics when a category is selected
   useEffect(() => {
     if (selectedCategory !== null) {
@@ -145,11 +150,11 @@ const ExamDetails = () => {
         <select
           value={selectedCategory || ''}
           onChange={(e) => setSelectedCategory(Number(e.target.value) || null)}
-          className="p-2 border rounded"
+          className="p-2 border rounded max-w-[180px] truncate"
         >
           <option value="">Category</option>
           {categories.map((cat: any) => (
-            <option key={cat.id} value={cat.id}>
+            <option key={cat.id} value={cat.id} className="truncate" title={cat.name}>
               {cat.name}
             </option>
           ))}
@@ -158,12 +163,13 @@ const ExamDetails = () => {
         <select
           value={selectedTopic || ''}
           onChange={(e) => setSelectedTopic(Number(e.target.value) || null)}
-          className="p-2 border rounded"
+          className="p-2 border rounded max-w-[180px] truncate"
           disabled={!topics.length}
         >
           <option value="">Topic</option>
           {topics.map((topic: any) => (
-            <option key={topic.id} value={topic.id}>
+            <option key={topic.id} value={topic.id} title={topic.name}
+              className="truncate">
               {topic.name}
             </option>
           ))}
@@ -187,6 +193,7 @@ const ExamDetails = () => {
           questions={paginatedQuestions}
           fetchExamQuestions={fetchExamQuestions}
           page={page}
+          limit={limit}
         />
       )}
       {!loading && !error && paginatedQuestions.length === 0 && (
@@ -194,21 +201,47 @@ const ExamDetails = () => {
       )}
 
       {/* Pagination */}
-      <div className="flex justify-between mt-4">
-        <button
-          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          disabled={page === 1}
-        >
-          Previous
-        </button>
-        <button
-          onClick={() => setPage((prev) => prev + 1)}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          disabled={paginatedQuestions.length < limit}
-        >
-          Next
-        </button>
+      <div className="flex justify-between items-center mt-4">
+        <div className="flex items-center space-x-2">
+          {/* <label htmlFor="limit" className="text-sm font-medium">Records per page:</label> */}
+          <select
+            id="limit"
+            value={limit}
+            onChange={(e) => {
+              setLimit(Number(e.target.value));
+              setPage(1); // reset to first page when changing limit
+            }}
+            className="p-2 border rounded"
+          >
+            {[10, 20, 50, 100, 200, 500].map((size) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            disabled={page === 1}
+          >
+            Previous
+          </button>
+
+          <span>
+            Page {page} of {totalQuestions > 0 ? Math.ceil(totalQuestions / limit) : 1}
+          </span>
+
+          <button
+            onClick={() => setPage((prev) => prev + 1)}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            disabled={page >= Math.ceil(totalQuestions / limit)}
+          >
+            Next
+          </button>
+        </div>
       </div>
       <ToastContainer position='top-center'></ToastContainer>
     </div>

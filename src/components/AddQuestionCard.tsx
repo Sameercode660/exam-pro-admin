@@ -10,9 +10,10 @@ interface QuestionCardProps {
   questions: any[];
   fetchQuestions: (page: number) => Promise<void>;
   page: number;
+  limit: number;
 }
 
-const AddQuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestions, page }) => {
+const AddQuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestions, page, limit }) => {
   const { examId } = useParams();
   const [selectedQuestions, setSelectedQuestions] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState(false);
@@ -98,7 +99,7 @@ const AddQuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestion
         </button>
       </div>
 
-      {questions.map((question) => {
+      {questions.map((question, qIndex) => {
         const isAlreadyInExam = alreadyAdded.includes(question.id);
         return (
           <div
@@ -114,16 +115,16 @@ const AddQuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestion
                 disabled={isAlreadyInExam}
               />
               <div>
-                <h2 className="text-xl font-bold text-gray-800 mb-2">{question.text}</h2>
-                <h3 className="font-semibold text-gray-800">Options:</h3>
+                <h2 className="text-xl font-bold text-gray-800 mb-2">{(page - 1) * limit + (qIndex + 1)}. {question.text}</h2>
+                {/* <h3 className="font-semibold text-gray-800">Options:</h3> */}
                 <ul className="list-disc list-inside text-gray-600">
-                  {question.options.map((opt: any) => (
-                    <li
+                  {question.options.map((opt: any, oIndex: any) => (
+                    <p
                       key={opt.id}
                       className={opt.isCorrect ? "text-green-600 font-semibold" : ""}
                     >
-                      {opt.text}
-                    </li>
+                      {oIndex + 1}. {opt.text}
+                    </p>
                   ))}
                 </ul>
                 {isAlreadyInExam && (
@@ -142,13 +143,12 @@ const AddQuestionCard: React.FC<QuestionCardProps> = ({ questions, fetchQuestion
               </li>
               <li className="text-gray-400 list-none font-semibold h-7 px-2 flex justify-center items-center rounded-md">
                 <span
-                  className={`px-2 py-1 rounded ${
-                    question.difficulty === "EASY"
+                  className={`px-2 py-1 rounded ${question.difficulty === "EASY"
                       ? "bg-green-100 text-green-800"
                       : question.difficulty === "MEDIUM"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : "bg-red-100 text-red-800"
-                  }`}
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
                 >
                   &#8226; {question.difficulty}
                 </span>

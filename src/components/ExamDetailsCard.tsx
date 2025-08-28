@@ -46,9 +46,10 @@ interface QuestionCardProps {
   questions: QuestionResponse[];
   fetchExamQuestions: () => Promise<void>;
   page: number;
+  limit: number;
 }
 
-const ExamDetailsCard: React.FC<QuestionCardProps> = ({ questions, fetchExamQuestions }) => {
+const ExamDetailsCard: React.FC<QuestionCardProps> = ({ questions, fetchExamQuestions, page, limit }) => {
   const { examId } = useParams();
   const [selectedQuestions, setSelectedQuestions] = useState<number[]>([]);
   const [bulkLoading, setBulkLoading] = useState(false);
@@ -117,11 +118,10 @@ const ExamDetailsCard: React.FC<QuestionCardProps> = ({ questions, fetchExamQues
         {selectedQuestions.length > 0 && (
           <button
             onClick={handleBulkRemoveQuestions}
-            className={`px-4 py-2 rounded-lg ${
-              bulkLoading
+            className={`px-4 py-2 rounded-lg ${bulkLoading
                 ? "bg-red-300 cursor-not-allowed"
                 : "bg-red-500 text-white hover:bg-red-600"
-            }`}
+              }`}
             disabled={bulkLoading}
           >
             {bulkLoading
@@ -131,7 +131,7 @@ const ExamDetailsCard: React.FC<QuestionCardProps> = ({ questions, fetchExamQues
         )}
       </div>
 
-      {questions.map((question) => (
+      {questions.map((question, qIndex) => (
         <div
           key={question.id}
           className="bg-white shadow-md rounded-lg p-4 border border-gray-200 flex justify-between items-start"
@@ -146,16 +146,16 @@ const ExamDetailsCard: React.FC<QuestionCardProps> = ({ questions, fetchExamQues
 
           {/* Question content */}
           <div className="flex-1">
-            <h2 className="text-xl font-bold text-gray-800 mb-2">{question.text}</h2>
-            <h3 className="font-semibold text-gray-800">Options:</h3>
+            <h2 className="text-xl font-bold text-gray-800 mb-2">{(page - 1) * limit + (qIndex + 1)}. {question.text}</h2>
+            {/* <h3 className="font-semibold text-gray-800">Options:</h3> */}
             <ul className="list-disc list-inside text-gray-600">
-              {question.options.map((option) => (
-                <li
+              {question.options.map((option, oIndex) => (
+                <p
                   key={option.id}
                   className={`${option.isCorrect ? "text-green-600 font-semibold" : ""}`}
                 >
-                  {option.text}
-                </li>
+                  {oIndex + 1}. {option.text}
+                </p>
               ))}
             </ul>
           </div>
@@ -170,13 +170,12 @@ const ExamDetailsCard: React.FC<QuestionCardProps> = ({ questions, fetchExamQues
             </li>
             <li className="text-gray-400 list-none font-semibold h-7 p-1 flex justify-center items-center rounded-md">
               <span
-                className={`px-2 py-1 rounded ${
-                  question.difficulty === "EASY"
+                className={`px-2 py-1 rounded ${question.difficulty === "EASY"
                     ? "bg-green-100 text-green-800"
                     : question.difficulty === "MEDIUM"
-                    ? "bg-yellow-100 text-yellow-800"
-                    : "bg-red-100 text-red-800"
-                }`}
+                      ? "bg-yellow-100 text-yellow-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
               >
                 &#8226; {question.difficulty}
               </span>

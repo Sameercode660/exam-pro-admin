@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
@@ -27,6 +27,15 @@ function AddQuestion() {
   const { user } = useAuth();
   const adminId = user?.id;
   const router = useRouter();
+  const organizationId = user?.organizationId;
+
+  const [categories, setCategories] = useState<any[]>([]);
+  const [topics, setTopics] = useState<any[]>([]);
+  const [filteredCategories, setFilteredCategories] = useState<any[]>([]);
+  const [filteredTopics, setFilteredTopics] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [title, setTitle] = useState<any>('');
+  const [description, setDescription] = useState<any>('');
 
   const [open, setOpen] = useState(false);
   const [batchData, setBatchData] = useState({
@@ -37,6 +46,54 @@ function AddQuestion() {
     message: "Upload completed",
     skipped: 0,
   });
+
+  // --------------------- suggestions ------------------------//
+  useEffect(() => {
+    if (organizationId) {
+      fetchCategoriesAndTopics();
+    }
+  }, [organizationId]);
+
+  const fetchCategoriesAndTopics = async () => {
+    try {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_ROOT_URL}/suggestions/category-topics`, {
+        organizationId
+      });
+      setCategories(res.data.categories || []);
+    } catch (err) {
+      console.log("Failed to fetch categories/topics", err);
+    }
+  };
+
+  // handle category typing
+  const handleCategoryChange = (value: string) => {
+    setTitle(value); // reuse `title` or make separate `categoryInput`
+    setFilteredCategories(
+      categories.filter((c) => c.name.toLowerCase().includes(value.toLowerCase()))
+    );
+  };
+
+  const handleCategorySelect = (cat: any) => {
+    setSelectedCategory(cat);
+    setTitle(cat.name); // fill input
+    setFilteredCategories([]);
+    setTopics(cat.topics);
+  };
+
+  // handle topic typing
+  const handleTopicChange = (value: string) => {
+    setDescription(value); // reuse or make `topicInput`
+    setFilteredTopics(
+      topics.filter((t) => t.name.toLowerCase().includes(value.toLowerCase()))
+    );
+  };
+
+  const handleTopicSelect = (topic: any) => {
+    setDescription(topic.name);
+    setFilteredTopics([]);
+  };
+
+  // ----------------------------- end -------------------------//
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -90,8 +147,8 @@ function AddQuestion() {
 
   const handleFormSubmit = async () => {
     const data = {
-      categoryName,
-      topicName,
+      categoryName: title,
+      topicName: description,
       text,
       option1,
       option2,
@@ -100,11 +157,14 @@ function AddQuestion() {
       correctOption: Number(correctOption),
       difficultyLevel,
       adminId,
+      organizationId
     };
 
+    console.log(data)
+
     if (
-      !categoryName ||
-      !topicName ||
+      !data.categoryName ||
+      !data.topicName ||
       !text ||
       !option1 ||
       !option2 ||
@@ -195,21 +255,56 @@ function AddQuestion() {
 
         <div className="space-y-4">
 
-          <input
-            type="text"
-            placeholder="Category Name"
-            value={categoryName}
-            onChange={(e) => setCategoryName(e.target.value)}
-            className="w-full px-4 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
+    {/* category */}
+          <div className="relative">
+            <label className="block text-sm font-semibold text-gray-600 mb-1">Category</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => handleCategoryChange(e.target.value)}
+              className="w-full px-4 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder="Category"
+            />
+            {filteredCategories.length > 0 && (
+              <ul className="absolute bg-white border rounded-xl mt-1 w-full max-h-40 overflow-y-auto shadow-md z-10">
+                {filteredCategories.map((cat) => (
+                  <li
+                    key={cat.id}
+                    onClick={() => handleCategorySelect(cat)}
+                    className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
+                  >
+                    {cat.name}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
-          <input
-            type="text"
-            placeholder="Topic Name"
-            value={topicName}
-            onChange={(e) => setTopicName(e.target.value)}
-            className="w-full px-4 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
+            {/* topic  */}
+
+          <div className="relative mt-4">
+            <label className="block text-sm font-semibold text-gray-600 mb-1">Topic</label>
+            <input
+              type="text"
+              value={description}
+              onChange={(e) => handleTopicChange(e.target.value)}
+              className="w-full px-4 py-2 rounded-xl border focus:outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder="Topic"
+            />
+            {filteredTopics.length > 0 && (
+              <ul className="absolute bg-white border rounded-xl mt-1 w-full max-h-40 overflow-y-auto shadow-md z-10">
+                {filteredTopics.map((topic) => (
+                  <li
+                    key={topic.id}
+                    onClick={() => handleTopicSelect(topic)}
+                    className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
+                  >
+                    {topic.name}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
           <textarea
             placeholder="Question Text"

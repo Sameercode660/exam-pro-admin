@@ -27,7 +27,7 @@ const AddQuestionInExam = () => {
   const [page, setPage] = useState(1);
   const [totalQuestions, setTotalQuestions] = useState(0);
 
-  const limit = 10;
+  const [limit, setLimit] = useState(10);
 
   /** ---------- Fetch Functions ---------- **/
   const fetchBatches = async () => {
@@ -94,6 +94,10 @@ const AddQuestionInExam = () => {
   }, []);
 
   useEffect(() => {
+    fetchQuestions();
+  }, [limit])
+
+  useEffect(() => {
     if (selectedCategory !== null) {
       fetchTopics(selectedCategory);
     } else {
@@ -143,23 +147,23 @@ const AddQuestionInExam = () => {
         <select
           value={selectedCategory || ''}
           onChange={e => setSelectedCategory(Number(e.target.value) || null)}
-          className="p-2 border rounded"
+          className="p-2 border rounded max-w-[180px] truncate"
         >
           <option value="">Category</option>
           {categories.map(cat => (
-            <option key={cat.id} value={cat.id}>{cat.name}</option>
+            <option key={cat.id} value={cat.id} className="truncate" title={cat.name}>{cat.name}</option>
           ))}
         </select>
 
         <select
           value={selectedTopic || ''}
           onChange={e => setSelectedTopic(Number(e.target.value) || null)}
-          className="p-2 border rounded"
+          className="p-2 border rounded max-w-[180px] truncate"
           disabled={!topics.length}
         >
           <option value="">Topic</option>
           {topics.map(topic => (
-            <option key={topic.id} value={topic.id}>{topic.name}</option>
+            <option key={topic.id} value={topic.id} className="truncate" title={topic.name}>{topic.name}</option>
           ))}
         </select>
 
@@ -194,6 +198,7 @@ const AddQuestionInExam = () => {
           questions={filteredQuestions}
           fetchQuestions={fetchQuestions}
           page={page}
+          limit={limit}
         />
       )}
       {!loading && !error && filteredQuestions.length === 0 && (
@@ -201,24 +206,47 @@ const AddQuestionInExam = () => {
       )}
 
       {/* Pagination */}
-      <div className="flex justify-between">
-        <button
-          onClick={() => setPage(prev => Math.max(prev - 1, 1))}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          disabled={page === 1}
-        >
-          Previous
-        </button>
+      <div className="flex justify-between items-center mt-4">
+        <div className="flex items-center space-x-2">
+          {/* <label htmlFor="limit" className="text-sm font-medium">Records per page:</label> */}
+          <select
+            id="limit"
+            value={limit}
+            onChange={(e) => {
+              setLimit(Number(e.target.value));
+              setPage(1); // reset to first page when changing limit
+            }}
+            className="p-2 border rounded"
+          >
+            {[10, 20, 50, 100, 200, 500].map((size) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        <span>Page {page} of {Math.ceil(totalQuestions / limit)}</span>
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            disabled={page === 1}
+          >
+            Previous
+          </button>
 
-        <button
-          onClick={() => setPage(prev => prev + 1)}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          disabled={page >= Math.ceil(totalQuestions / limit)}
-        >
-          Next
-        </button>
+          <span>
+            Page {page} of {totalQuestions > 0 ? Math.ceil(totalQuestions / limit) : 1}
+          </span>
+
+          <button
+            onClick={() => setPage((prev) => prev + 1)}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            disabled={page >= Math.ceil(totalQuestions / limit)}
+          >
+            Next
+          </button>
+        </div>
       </div>
 
     </div>
